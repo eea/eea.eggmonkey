@@ -1,0 +1,29 @@
+Changelog
+=========
+[Tiberiu Ichim - tiberiu.ichim@eaudeweb.ro]
+
+0.6 - (2010-09-16)
+------------------
+ * Use the shell for the manual upload operation
+
+0.5 - (2010-09-16)
+------------------
+ * Change the way the manual upload is executed
+
+0.4 - (2010-09-16)
+------------------
+ * Fix setup upload command execution
+
+0.3 - (2010-09-16)
+------------------
+ * Fix wrong name for setup.py inside the monkey module
+
+0.2 - (2010-09-16)
+------------------
+ * mkrelease fails with error due to inexistent register command on eggrepo,
+   now we handle this [tiberich]
+
+0.1 - (2010-09-16)
+----------------------
+ * Initial commit [tiberich]
+
