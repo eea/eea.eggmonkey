@@ -2,6 +2,7 @@ Changelog
 =========
 [Tiberiu Ichim - tiberiu.ichim@eaudeweb.ro]
 
-0.1-dev - (unreleased)
-----------------------
+0.1 - (2010-09-16)
+------------------
  * Initial commit [tiberich]
+
