@@ -2,6 +2,10 @@ Changelog
 =========
 [Tiberiu Ichim - tiberiu.ichim@eaudeweb.ro]
 
+0.5 - (2010-09-16)
+------------------
+ * Change the way the manual upload is executed
+
 0.4 - (2010-09-16)
 ------------------
  * Fix setup upload command execution
