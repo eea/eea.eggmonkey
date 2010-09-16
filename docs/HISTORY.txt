@@ -2,12 +2,8 @@ Changelog
 =========
 [Tiberiu Ichim - tiberiu.ichim@eaudeweb.ro]
 
-0.3 - (2010-09-16)
-------------------
- * 
-
 0.2 - (2010-09-16)
-----------------------
+------------------
  * mkrelease fails with error due to inexistent register command on eggrepo,
    now we handle this [tiberich]
 

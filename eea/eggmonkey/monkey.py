@@ -180,16 +180,17 @@ def change_version(path, package, version):
     f.close()
 
 
-def do_step(func, step):
+def do_step(func, step, ignore_error=False):
     try:
         func()
     except Exception, e:
-        print "Got an error: <%s> while doing step %s" % (e, step)
-        print "Continue with manual steps based on instructions bellow"
-        print "-" * 40
-        print INSTRUCTIONS
+        if not ignore_error:
+            print "Got an error: <%s> while doing step %s" % (e, step)
+            print "Continue with manual steps based on instructions bellow"
+            print "-" * 40
+            print INSTRUCTIONS
 
-        sys.exit(0)
+            sys.exit(0)
 
 
 def release_package(package, sources, args):
@@ -201,7 +202,7 @@ def release_package(package, sources, args):
 
     cmd = [args.mkrelease, '-d', args.domain]
     if not no_net:
-        do_step(lambda:subprocess.check_call(cmd, cwd=package_path), 3)
+        do_step(lambda:subprocess.check_call(cmd, cwd=package_path), 3, ignore_error=True)
     else:
         print "Fake operation: ", " ".join(cmd)
 
