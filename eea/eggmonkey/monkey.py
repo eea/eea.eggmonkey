@@ -116,9 +116,6 @@ class HistoryParser(object):
 
         f.close()
 
-        #import pprint
-        #pprint.pprint(self.entries)
-
     def bump_version(self):
         section = self.entries[0]
         header = section[0]
@@ -206,14 +203,14 @@ def release_package(package, sources, args):
     if not no_net:
         do_step(lambda:subprocess.check_call(cmd, cwd=package_path), 3)
     else:
-        print "Fake doing ", " ".join(cmd)
+        print "Fake operation: ", " ".join(cmd)
 
     if args.manual_upload:
         cmd = ['python', 'setup.pt', 'sdist' 'upload', '-r', args.domain]
         if not no_net:
             do_step(lambda:subprocess.check_call(cmd, cwd=package_path), 4)
         else:
-            print "Fake doing ", " ".join(cmd)
+            print "Fake operation: ", " ".join(cmd)
 
     cmd = ['svn', 'up', 'versions.cfg']
     do_step(lambda:subprocess.check_call(cmd, cwd=os.getcwd()), 5)
@@ -226,7 +223,7 @@ def release_package(package, sources, args):
     if not no_net:
         do_step(lambda:subprocess.check_call(cmd, cwd=os.getcwd()), 7)
     else:
-        print "Fake doing ", " ".join(cmd)
+        print "Fake operation: ", " ".join(cmd)
 
     do_step(lambda:bump_version(package_path), 8)
     do_step(lambda:bump_history(package_path), 9)
@@ -235,7 +232,7 @@ def release_package(package, sources, args):
     if not no_net:
         do_step(lambda:subprocess.check_call(cmd, cwd=package_path), 10)
     else:
-        print "Fake doing ", " ".join(cmd)
+        print "Fake operation: ", " ".join(cmd)
 
     return
 
