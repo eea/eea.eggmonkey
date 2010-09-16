@@ -2,6 +2,10 @@ Changelog
 =========
 [Tiberiu Ichim - tiberiu.ichim@eaudeweb.ro]
 
+0.4 - (2010-09-16)
+------------------
+ * Fix setup upload command execution
+
 0.3 - (2010-09-16)
 ------------------
  * Fix wrong name for setup.py inside the monkey module
