@@ -170,6 +170,8 @@ def change_version(path, package, version):
     f = open(path, 'rw+')
     b = []
     _l = "%s = %s" % (package, version)
+
+    found = False
     for line in f.readlines():
         if line.strip().split("=")[0] == package:
             b.append(_l)

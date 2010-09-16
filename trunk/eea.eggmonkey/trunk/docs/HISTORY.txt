@@ -2,6 +2,10 @@ Changelog
 =========
 [Tiberiu Ichim - tiberiu.ichim@eaudeweb.ro]
 
+0.7 - (2010-09-16)
+------------------
+ * Fix small bug in incrementing versions.cfg
+
 0.6 - (2010-09-16)
 ------------------
  * Use the shell for the manual upload operation
