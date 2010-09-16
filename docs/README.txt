@@ -18,6 +18,10 @@ The ten steps are:
     9. Update history file. Add Unreleased section
     10. SVN commit the dev version of the package.
 
+Requirements
+------------
+eea.eggmonkey requires python2.6
+
 Instalation
 -----------
 To use it, you need to add eea.eggmonkey as an extension to zc.buildout, for example:
@@ -32,11 +36,15 @@ parts =
     monkey
     ...
 
-Also, you need to add a new part:
+Also, you need to add a new part (+ the python26 part, if you don't already have it):
 
 [monkey]
 recipe = zc.recipe.egg
 eggs = eea.eggmonkey
+python = python26
+
+[python26]
+executable = /usr/bin/python2.6
 
 Usage
 -----
