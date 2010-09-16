@@ -78,10 +78,12 @@ def get_version(path):
 
 
 class HistoryParser(object):
-    header = []
-    entries = []
+    header = None
+    entries = None
 
     def __init__(self, path):
+        self.header = []
+        self.entries = []
         h_path = find_file(path, "HISTORY.txt")
         self.h_path = h_path
         f = open(h_path, 'r')
@@ -93,13 +95,14 @@ class HistoryParser(object):
         for nr, line in enumerate(self.original):
 
             if line and line[0].isdigit():
-                #we test if next line is underlined
+                #we test if it's the last line
                 if (nr == len(self.original) - 1):
-                    section_start = nr  #last line
+                    section_start = nr  
+                #we test if next line is underlined
                 elif self.original[nr+1].strip()[0] in "-=~^":  
                     section_start = nr
 
-            if (not line.strip()) and section_start:
+            if (not line.strip()) and section_start:    #empty line, end of section
                 section_end = nr
 
             if not section_start:
@@ -169,11 +172,12 @@ def bump_history(path):
 def change_version(path, package, version):
     f = open(path, 'rw+')
     b = []
-    _l = "%s = %s" % (package, version)
+    _l = "%s = %s\n" % (package, version)
 
     found = False
     for line in f.readlines():
-        if line.strip().split("=")[0] == package:
+        p = line.split("=")[0].strip()
+        if p == package:
             b.append(_l)
             found = True
         else:
@@ -183,7 +187,7 @@ def change_version(path, package, version):
         b.append(_l)
 
     f.truncate(0); f.seek(0)
-    f.write("\n".join(b))
+    f.write("".join(b))
     f.close()
 
 
@@ -219,7 +223,7 @@ def release_package(package, sources, args):
         if not no_net:
             do_step(lambda:subprocess.check_call(cmd, cwd=package_path, shell=True), 4)
         else:
-            print "Fake operation: ", " ".join(cmd)
+            print "Fake operation: ", cmd
 
     cmd = ['svn', 'up', 'versions.cfg']
     do_step(lambda:subprocess.check_call(cmd, cwd=os.getcwd()), 5)
