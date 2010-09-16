@@ -2,6 +2,9 @@ Changelog
 =========
 [Tiberiu Ichim - tiberiu.ichim@eaudeweb.ro]
 
+0.9-dev - (unreleased)
+----------------------
+
 0.8 - (2010-09-16)
 ------------------
  * Fix bug in history file handling
