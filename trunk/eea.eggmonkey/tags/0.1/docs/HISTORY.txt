@@ -1,0 +1,8 @@
+Changelog
+=========
+[Tiberiu Ichim - tiberiu.ichim@eaudeweb.ro]
+
+0.2-dev - (2010-09-16)
+----------------------
+ * Initial commit [tiberich]
+
