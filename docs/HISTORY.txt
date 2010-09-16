@@ -2,6 +2,10 @@ Changelog
 =========
 [Tiberiu Ichim - tiberiu.ichim@eaudeweb.ro]
 
+0.8-dev - (unreleased)
+----------------------
+ * Fix bug in history file handling
+
 0.7 - (2010-09-16)
 ------------------
  * Fix small bug in incrementing versions.cfg
