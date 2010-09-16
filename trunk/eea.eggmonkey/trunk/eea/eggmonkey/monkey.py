@@ -232,7 +232,7 @@ def release_package(package, sources, args):
     do_step(lambda:change_version(path=os.path.join(os.getcwd(), 'versions.cfg'), 
                    package=package, version=version), 6)
 
-    cmd = ['svn', 'ci', 'versions.cfg', '-m', '"Updated version for %s"' % package]
+    cmd = ['svn', 'ci', 'versions.cfg', '-m', 'Updated version for %s' % package]
     if not no_net:
         do_step(lambda:subprocess.check_call(cmd, cwd=os.getcwd()), 7)
     else:
@@ -241,7 +241,7 @@ def release_package(package, sources, args):
     do_step(lambda:bump_version(package_path), 8)
     do_step(lambda:bump_history(package_path), 9)
 
-    cmd = ['svn', 'ci', '-m', '"Change version to devel"']
+    cmd = ['svn', 'ci', '-m', 'Change version to devel']
     if not no_net:
         do_step(lambda:subprocess.check_call(cmd, cwd=package_path), 10)
     else:
