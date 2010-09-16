@@ -215,7 +215,7 @@ def release_package(package, sources, args):
         #cmd = ['python', 'setup.py', 'sdist upload', '-r', args.domain]
         cmd = 'python setup.py sdist upload -r ' + args.domain
         if not no_net:
-            do_step(lambda:subprocess.check_call(cmd, cwd=package_path), 4)
+            do_step(lambda:subprocess.check_call(cmd, cwd=package_path, shell=True), 4)
         else:
             print "Fake operation: ", " ".join(cmd)
 

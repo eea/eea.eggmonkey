@@ -2,6 +2,10 @@ Changelog
 =========
 [Tiberiu Ichim - tiberiu.ichim@eaudeweb.ro]
 
+0.6 - (2010-09-16)
+------------------
+ * Use the shell for the manual upload operation
+
 0.5 - (2010-09-16)
 ------------------
  * Change the way the manual upload is executed
