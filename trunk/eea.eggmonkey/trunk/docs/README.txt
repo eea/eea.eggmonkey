@@ -52,6 +52,11 @@ Typical usage would be:
 
     ``bin/monkey eea.indicators``
 
+You can specify multiple packages on the command line, they
+will all be processed:
+
+    ``bin/monkey eea.indicators eea.workflow eea.version
+
 Or, if you want to release all eggs specified in the 
 auto-checkout section of buildout:
 
@@ -67,6 +72,10 @@ can give it as an argument to the script, using the -m switch:
 
     ``bin/monkey eea.indicators -m /path/to/bin/mkrelease``
 
+If you don't want to specify this path, place the mkrelease
+script in the PATH environment variable (typically this can
+be achieved by activating its virtualenv).
+
 Finally, if you're releasing eggs to a different repository, or 
 if you have eggrepo.eea.europa.eu aliased as something different 
 then "eea", you can manually specify this using the -d switch:
@@ -77,5 +86,4 @@ If you want to forbid all network operations (for example,
 during testing), you can run
 
     ``bin/monkey -n eea.indicators``
-
 
