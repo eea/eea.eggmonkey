@@ -201,11 +201,12 @@ def do_step(func, step, ignore_error=False):
             print "-" * 40
             print INSTRUCTIONS
 
-            sys.exit(0)
+            sys.exit(1)
 
 
 def release_package(package, sources, args):
     package_path = sources[package]['path']
+    check_package_sanity(package_path)
     no_net = args.no_network
 
     do_step(lambda:bump_version(package_path), 1)
@@ -249,6 +250,37 @@ def release_package(package, sources, args):
 
     return
 
+def which(program):
+    """Check if an executable exists"""
+    def is_exe(fpath):
+        return os.path.exists(fpath) and os.access(fpath, os.X_OK)
+
+    fpath, fname = os.path.split(program)
+    if fpath:
+        if is_exe(program):
+            return program
+    else:
+        for path in os.environ["PATH"].split(os.pathsep):
+            exe_file = os.path.join(path, program)
+            if is_exe(exe_file):
+                return exe_file
+
+    return None
+
+
+def check_global_sanity(args):
+
+    #check if mkrelease can be found
+    if not which(args.mkrelease):
+        print "Could not find mkrelease script. Quiting."
+        sys.exit(1)
+
+
+def check_package_sanity(package_path):
+    if not os.path.exists(package_path):
+        print "Path %s is invalid, quiting." % package_path
+        sys.exit(1)
+
 
 def main(*a, **kw):
     try:
@@ -256,7 +288,7 @@ def main(*a, **kw):
     except Exception, e:
         print "Got exception while trying to open monkey cache file: ", e
         print "You need to run buildout first, before running the monkey"
-        sys.exit(0)
+        sys.exit(1)
 
     cmd = argparse.ArgumentParser(u"Eggmonkey: easy build and release of eggs\n")
 
@@ -286,20 +318,22 @@ def main(*a, **kw):
     packages = args.packages
     if not packages and not args.autocheckout:
         cmd.print_help()
-        sys.exit(0)
+        sys.exit(1)
 
     if packages and args.autocheckout:
         print "ERROR: specify PACKAGES or autocheckout, but not both"
-        sys.exit(0)
+        sys.exit(1)
 
     if args.autocheckout:
         packages = autocheckout
 
+    check_global_sanity(args)
     for package in packages:
         if package not in sources:
             print "ERROR: Package %s can't be found. Quiting." % package
-            sys.exit(0)
+            sys.exit(1)
 
         print "Releasing package: ", package
         release_package(package, sources, args)
 
+    sys.exit(0)
