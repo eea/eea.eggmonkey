@@ -2,6 +2,9 @@ Changelog
 =========
 [Tiberiu Ichim - tiberiu.ichim@eaudeweb.ro]
 
+0.11-dev - (unreleased)
+-----------------------
+
 0.10 - (2010-09-17)
 -------------------
  * Add sanity checks for mkrelease script and package path
