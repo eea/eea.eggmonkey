@@ -7,6 +7,7 @@ Changelog
  * Use colored ouput to make eggmonkey messages easier to distinguish
  * Check if versions.cfg exists before starting
  * Get input from user in case of error when doing mkrelease, if used with -m flag
+ * Improve commit message when changing version to development
 
 0.10 - (2010-09-17)
 -------------------
