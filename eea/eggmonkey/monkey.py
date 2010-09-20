@@ -1,9 +1,10 @@
-import sys
-import argparse #optparse is deprecated
+from colorama import Fore, Back, Style, init
+import argparse
 import cPickle
-import os
 import datetime
+import os
 import subprocess
+import sys
 
 
 INSTRUCTIONS = """
@@ -19,6 +20,8 @@ INSTRUCTIONS = """
 #10. SVN commit the dev version of the package.
 """
 
+init()
+EGGMONKEY = Fore.RED + "EGGMONKEY: " + Fore.RESET
 
 def get_buildout():
     cwd = os.getcwd()
@@ -95,11 +98,9 @@ class HistoryParser(object):
         for nr, line in enumerate(self.original):
 
             if line and line[0].isdigit():
-                #we test if it's the last line
-                if (nr == len(self.original) - 1):
+                if (nr == len(self.original) - 1):  #we test if it's the last line
                     section_start = nr  
-                #we test if next line is underlined
-                elif self.original[nr+1].strip()[0] in "-=~^":  
+                elif self.original[nr+1].strip()[0] in "-=~^":      #we test if next line is underlined
                     section_start = nr
 
             if (not line.strip()) and section_start:    #empty line, end of section
@@ -196,8 +197,17 @@ def do_step(func, step, ignore_error=False):
         func()
     except Exception, e:
         if not ignore_error:
-            print "Got an error: <%s> while doing step %s" % (e, step)
-            print "Continue with manual steps based on instructions bellow"
+            print EGGMONKEY + "Got an error on step %s: <%s>" % (step, e)
+            
+            while True:
+                ans = raw_input(EGGMONKEY + "Do you want to continue? (y/n/q) ")
+                if ans.lower() in "ynq":
+                    break
+
+            if ans.lower() == "y":
+                return
+
+            print "Carry on with the manual steps described in the instructions below"
             print "-" * 40
             print INSTRUCTIONS
 
@@ -214,17 +224,17 @@ def release_package(package, sources, args):
 
     cmd = [args.mkrelease, '-d', args.domain]
     if not no_net:
-        do_step(lambda:subprocess.check_call(cmd, cwd=package_path), 3, ignore_error=True)
+        do_step(lambda:subprocess.check_call(cmd, cwd=package_path), 
+                3, ignore_error=args.manual_upload)
     else:
-        print "Fake operation: ", " ".join(cmd)
+        print EGGMONKEY + "Fake operation: ", " ".join(cmd)
 
     if args.manual_upload:
-        #cmd = ['python', 'setup.py', 'sdist upload', '-r', args.domain]
         cmd = 'python setup.py sdist upload -r ' + args.domain
         if not no_net:
             do_step(lambda:subprocess.check_call(cmd, cwd=package_path, shell=True), 4)
         else:
-            print "Fake operation: ", cmd
+            print EGGMONKEY + "Fake operation: ", cmd
 
     cmd = ['svn', 'up', 'versions.cfg']
     do_step(lambda:subprocess.check_call(cmd, cwd=os.getcwd()), 5)
@@ -237,7 +247,7 @@ def release_package(package, sources, args):
     if not no_net:
         do_step(lambda:subprocess.check_call(cmd, cwd=os.getcwd()), 7)
     else:
-        print "Fake operation: ", " ".join(cmd)
+        print EGGMONKEY + "Fake operation: ", " ".join(cmd)
 
     do_step(lambda:bump_version(package_path), 8)
     do_step(lambda:bump_history(package_path), 9)
@@ -246,9 +256,10 @@ def release_package(package, sources, args):
     if not no_net:
         do_step(lambda:subprocess.check_call(cmd, cwd=package_path), 10)
     else:
-        print "Fake operation: ", " ".join(cmd)
+        print EGGMONKEY + "Fake operation: ", " ".join(cmd)
 
     return
+
 
 def which(program):
     """Check if an executable exists"""
@@ -272,13 +283,17 @@ def check_global_sanity(args):
 
     #check if mkrelease can be found
     if not which(args.mkrelease):
-        print "Could not find mkrelease script. Quiting."
+        print EGGMONKEY + "Could not find mkrelease script. Quiting."
+        sys.exit(1)
+
+    if not os.path.exists("versions.cfg"):
+        print EGGMONKEY + "versions.cfg file was not found. Quiting."
         sys.exit(1)
 
 
 def check_package_sanity(package_path):
     if not os.path.exists(package_path):
-        print "Path %s is invalid, quiting." % package_path
+        print EGGMONKEY + "Path %s is invalid, quiting." % package_path
         sys.exit(1)
 
 
@@ -286,7 +301,7 @@ def main(*a, **kw):
     try:
         sources, autocheckout = get_buildout()
     except Exception, e:
-        print "Got exception while trying to open monkey cache file: ", e
+        print EGGMONKEY + "Got exception while trying to open monkey cache file: ", e
         print "You need to run buildout first, before running the monkey"
         sys.exit(1)
 
@@ -321,7 +336,7 @@ def main(*a, **kw):
         sys.exit(1)
 
     if packages and args.autocheckout:
-        print "ERROR: specify PACKAGES or autocheckout, but not both"
+        print EGGMONKEY + "ERROR: specify PACKAGES or autocheckout, but not both"
         sys.exit(1)
 
     if args.autocheckout:
@@ -330,10 +345,10 @@ def main(*a, **kw):
     check_global_sanity(args)
     for package in packages:
         if package not in sources:
-            print "ERROR: Package %s can't be found. Quiting." % package
+            print EGGMONKEY + "ERROR: Package %s can't be found. Quiting." % package
             sys.exit(1)
 
-        print "Releasing package: ", package
+        print EGGMONKEY + "Releasing package: ", package
         release_package(package, sources, args)
 
     sys.exit(0)

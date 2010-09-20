@@ -32,8 +32,9 @@ setup(name=name,
 
         install_requires=[
             'setuptools',
-            'argparse',
             'mr.developer',
+            'argparse', #TODO: test python version, it comes included with Python 2.7
+            'colorama',
             ],
         entry_points={
             "console_scripts":[
