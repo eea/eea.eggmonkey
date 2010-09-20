@@ -2,6 +2,9 @@ Changelog
 =========
 [Tiberiu Ichim - tiberiu.ichim@eaudeweb.ro]
 
+0.12-dev - (unreleased)
+-----------------------
+
 0.11 - (2010-09-20)
 -------------------
  * Use colored ouput to make eggmonkey messages easier to distinguish
