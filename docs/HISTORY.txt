@@ -2,11 +2,11 @@ Changelog
 =========
 [Tiberiu Ichim - tiberiu.ichim@eaudeweb.ro]
 
-0.11-dev - (unreleased)
------------------------
+0.11 - (2010-09-20)
+-------------------
  * Use colored ouput to make eggmonkey messages easier to distinguish
  * Check if versions.cfg exists before starting
- * Get input from user in case of error when doing mkrelease, if used with -m flag
+ * Get input from user in case of error when doing mkrelease, if used with -u flag
  * Improve commit message when changing version to development
 
 0.10 - (2010-09-17)
