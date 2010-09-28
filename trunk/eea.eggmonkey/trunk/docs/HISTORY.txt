@@ -2,6 +2,9 @@ Changelog
 =========
 [Tiberiu Ichim - tiberiu.ichim@eaudeweb.ro]
 
+0.16-dev - (unreleased)
+-----------------------
+
 0.15 - (2010-09-28)
 -------------------
  * Bugfix: Fix printing of debug message for manual upload step [tiberich #3642]
