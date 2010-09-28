@@ -22,6 +22,7 @@ INSTRUCTIONS = """
 
 init()
 EGGMONKEY = Fore.RED + "EGGMONKEY: " + Fore.RESET
+EXTERNAL = Fore.BLUE + "RUNNING: " + Fore.RESET
 
 def get_buildout():
     cwd = os.getcwd()
@@ -285,8 +286,33 @@ def release_package(package, sources, args):
     do_step(lambda:bump_version(package_path), 1)
     do_step(lambda:bump_history(package_path), 2)
 
+    tag_build = None
+    tag_svn_revision = None
+
+    if args.manual_upload:
+        #when doing manual upload, if there's a setup.cfg file, we might get strange version
+        #so we change it here and again after the package release
+        if 'setup.cfg' in os.listdir(package_path):
+            print EGGMONKEY + "Changing setup.cfg to fit manual upload"
+            f = open(os.path.join(package_path, 'setup.cfg'), 'rw+')
+            b = []
+            for l in f.readlines():
+                l = l.strip()
+                if l.startswith("tag_build"):
+                    tag_build = l
+                    b.append("tag_build = ")
+                elif l.startswith("tag_svn_revision"):
+                    tag_svn_revision = l
+                    b.append("tag_svn_revision = false")
+                else:
+                    b.append(l)
+            f.seek(0); f.truncate(0)
+            f.write("\n".join(b))
+            f.close()
+
     cmd = [args.mkrelease, '-d', args.domain]
     if not no_net:
+        print EXTERNAL + " ".join(cmd)
         do_step(lambda:subprocess.check_call(cmd, cwd=package_path), 
                 3, ignore_error=args.manual_upload)
     else:
@@ -295,11 +321,29 @@ def release_package(package, sources, args):
     if args.manual_upload:
         cmd = 'python setup.py sdist upload -r ' + args.domain
         if not no_net:
+            print EXTERNAL + " ".join(cmd)
             do_step(lambda:subprocess.check_call(cmd, cwd=package_path, shell=True), 4)
         else:
             print EGGMONKEY + "Fake operation: ", cmd
 
+        if tag_build:   #we write the initial version of the setup.cfg file
+            print EGGMONKEY + "Changing setup.cfg back to the original"
+            f = open(os.path.join(package_path, 'setup.cfg'), 'rw+')
+            b = []
+            for l in f.readlines():
+                l = l.strip()
+                if l.startswith("tag_build"):
+                    b.append(tag_build)
+                elif l.startswith("tag_svn_revision"):
+                    b.append(tag_svn_revision)
+                else:
+                    b.append(l)
+            f.seek(0); f.truncate(0)
+            f.write("\n".join(b))
+            f.close()
+
     cmd = ['svn', 'up', 'versions.cfg']
+    print EXTERNAL + " ".join(cmd)
     do_step(lambda:subprocess.check_call(cmd, cwd=os.getcwd()), 5)
 
     version = get_version(package_path)
@@ -307,6 +351,7 @@ def release_package(package, sources, args):
                    package=package, version=version), 6)
 
     cmd = ['svn', 'ci', 'versions.cfg', '-m', 'Updated version for %s to %s' % (package, version)]
+    print EXTERNAL + " ".join(cmd)
     if not no_net:
         do_step(lambda:subprocess.check_call(cmd, cwd=os.getcwd()), 7)
     else:
@@ -317,6 +362,7 @@ def release_package(package, sources, args):
 
     version = get_version(package_path)
     cmd = ['svn', 'ci', '-m', 'Change version to %s' % version]
+    print EXTERNAL + " ".join(cmd)
     if not no_net:
         do_step(lambda:subprocess.check_call(cmd, cwd=package_path), 10)
     else:
