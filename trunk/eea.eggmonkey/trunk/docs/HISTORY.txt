@@ -2,8 +2,9 @@ Changelog
 =========
 [Tiberiu Ichim - tiberiu.ichim@eaudeweb.ro]
 
-0.13-dev - (unreleased)
------------------------
+0.13 - (2010-09-28)
+-------------------
+ * Feature: check that the version that we get from parsing files is valid [tiberich #3642]
 
 0.12 - (2010-09-28)
 -------------------

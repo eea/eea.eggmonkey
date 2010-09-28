@@ -65,6 +65,12 @@ def bump_version(path):
     v_path = find_file(path, "version.txt")
     f = open(v_path, 'rw+')
     version = f.read().strip()
+    try:
+        validate_version(version)
+    except ValueError:
+        print EGGMONKEY + "Got invalid version " + version
+        sys.exit(1)
+
     newver = _increment_version(version)
     f.truncate(0); f.seek(0) 
     f.write(newver)
@@ -77,6 +83,11 @@ def get_version(path):
     v_path = find_file(path, "version.txt")
     f = open(v_path, 'r')
     version = f.read().strip()
+    try:
+        validate_version(version)
+    except ValueError:
+        print EGGMONKEY + "Got invalid version " + version
+        sys.exit(1)
     return version
 
 
@@ -137,6 +148,11 @@ class HistoryParser(object):
         section = self.entries[0]
         header = section[0]
         version = header.split(" ")[0]
+        try:
+            validate_version(version)
+        except ValueError:
+            print EGGMONKEY + "Got invalid version " + version
+            sys.exit(1)
         newver = _increment_version(version)
         today = str(datetime.datetime.now().date())
         section[0] = u"%s - (%s)" % (newver, today)
@@ -146,6 +162,11 @@ class HistoryParser(object):
         section = self.entries[0]
         header = section[0]
         version = header.split(" ")[0]
+        try:
+            validate_version(version)
+        except ValueError:
+            print EGGMONKEY + "Got invalid version " + version
+            sys.exit(1)
         newver = _increment_version(version)
         line = u"%s - (unreleased)" % (newver)
 
@@ -169,11 +190,47 @@ class HistoryParser(object):
         section = self.entries[0]
         header = section[0]
         version = header.split(" ")[0].strip()
+        try:
+            validate_version(version)
+        except ValueError:
+            print EGGMONKEY + "Got invalid version " + version
+            sys.exit(1)
         return version
 
 def bump_history(path):
     hp = HistoryParser(path)
     hp.bump_version()
+
+
+def validate_version(version):
+    """See if what we consider a version number is actually a valid version number"""
+    version = version.strip()
+
+    if not "." in version:
+        raise ValueError
+    
+    #all parts need to contain digits, only the last part can contain -dev
+    parts = version.split('.')
+    if not len(parts) > 1:
+        raise ValueError
+
+    for part in parts[:-1]:
+        for c in part:
+            if not c.isdigit():
+                raise ValueError
+
+    lp = parts[-1]
+    if lp.endswith("-dev"):
+        lp = lp.split("-dev")
+        if (len(lp) != 2) and (lp[1] == ''):
+            raise ValueError
+        lp = lp[0]
+
+    for c in lp:
+        if not c.isdigit():
+            raise ValueError
+
+    return True
 
 
 def change_version(path, package, version):
