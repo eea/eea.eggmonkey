@@ -2,6 +2,9 @@ Changelog
 =========
 [Tiberiu Ichim - tiberiu.ichim@eaudeweb.ro]
 
+0.13-dev - (unreleased)
+-----------------------
+
 0.12 - (2010-09-28)
 -------------------
  * Bug fix: Check that the package is at -dev version when starting to process it [tiberich #3642]
