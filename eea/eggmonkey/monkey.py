@@ -164,6 +164,12 @@ class HistoryParser(object):
             f.write("\n\n")
         f.close()
 
+    def get_current_version(self):
+        """Return the last version"""
+        section = self.entries[0]
+        header = section[0]
+        version = header.split(" ")[0].strip()
+        return version
 
 def bump_history(path):
     hp = HistoryParser(path)
@@ -295,6 +301,17 @@ def check_global_sanity(args):
 def check_package_sanity(package_path):
     if not os.path.exists(package_path):
         print EGGMONKEY + "Path %s is invalid, quiting." % package_path
+        sys.exit(1)
+
+    version = get_version(package_path)
+    if not "-dev" in version:
+        print EGGMONKEY + "Version.txt file is not at -dev. Quiting."
+        sys.exit(1)
+
+    history = HistoryParser(package_path)
+    version = history.get_current_version()
+    if not "-dev" in version:
+        print EGGMONKEY + "HISTORY.txt file is not at -dev. Quiting."
         sys.exit(1)
 
 
