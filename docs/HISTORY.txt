@@ -2,6 +2,9 @@ Changelog
 =========
 [Tiberiu Ichim - tiberiu.ichim@eaudeweb.ro]
 
+0.15-dev - (unreleased)
+-----------------------
+
 0.14 - (2010-09-28)
 -------------------
  * Feature: handle cases when setup.cfg cause manual upload to deliver svn versions [tiberich #3642]
