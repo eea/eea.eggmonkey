@@ -2,8 +2,10 @@ Changelog
 =========
 [Tiberiu Ichim - tiberiu.ichim@eaudeweb.ro]
 
-0.14-dev - (unreleased)
------------------------
+0.14 - (2010-09-28)
+-------------------
+ * Feature: handle cases when setup.cfg cause manual upload to deliver svn versions [tiberich #3642]
+ * Feature: print blue messages about commands being ran [tiberich #3642]
 
 0.13 - (2010-09-28)
 -------------------
