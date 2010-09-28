@@ -321,7 +321,7 @@ def release_package(package, sources, args):
     if args.manual_upload:
         cmd = 'python setup.py sdist upload -r ' + args.domain
         if not no_net:
-            print EXTERNAL + " ".join(cmd)
+            print EXTERNAL + cmd
             do_step(lambda:subprocess.check_call(cmd, cwd=package_path, shell=True), 4)
         else:
             print EGGMONKEY + "Fake operation: ", cmd
