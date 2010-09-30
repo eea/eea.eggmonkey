@@ -261,21 +261,22 @@ def do_step(func, step, ignore_error=False):
         func()
     except Exception, e:
         if not ignore_error:
-            print EGGMONKEY + "Got an error on step %s: <%s>" % (step, e)
+            print EGGMONKEY + "Got an error on step %s, but we continue: <%s>" % (step, e)
+            return
             
-            while True:
-                ans = raw_input(EGGMONKEY + "Do you want to continue? (y/n/q) ")
-                if ans.lower() in "ynq":
-                    break
+            #while True:
+                #ans = raw_input(EGGMONKEY + "Do you want to continue? (y/n/q) ")
+                #if ans.lower() in "ynq":
+                    #break
 
-            if ans.lower() == "y":
-                return
+            #if ans.lower() == "y":
+                #return
 
-            print "Carry on with the manual steps described in the instructions below"
-            print "-" * 40
-            print INSTRUCTIONS
+            #print "Carry on with the manual steps described in the instructions below"
+            #print "-" * 40
+            #print INSTRUCTIONS
 
-            sys.exit(1)
+            #sys.exit(1)
 
 
 def release_package(package, sources, args):
