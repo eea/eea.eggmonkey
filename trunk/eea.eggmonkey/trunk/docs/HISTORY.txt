@@ -2,6 +2,9 @@ Changelog
 =========
 [Tiberiu Ichim - tiberiu.ichim@eaudeweb.ro]
 
+0.17-dev - (unreleased)
+-----------------------
+
 0.16 - (2010-09-30)
 -------------------
  * Check validity of package name and explain that eggmonkey needs to run from the buildout folder [tiberich #3642]
