@@ -424,6 +424,7 @@ def main(*a, **kw):
     except Exception, e:
         print EGGMONKEY + "Got exception while trying to open monkey cache file: ", e
         print "You need to run buildout first, before running the monkey"
+        print "Also, make sure you run the eggmonkey from the buildout folder"
         sys.exit(1)
 
     cmd = argparse.ArgumentParser(u"Eggmonkey: easy build and release of eggs\n")
@@ -441,7 +442,7 @@ def main(*a, **kw):
 
     cmd.add_argument("packages", nargs="*", metavar="PACKAGE", 
                 help=u"The packages to release. Can be any of: { %s }" % 
-                     u" ".join(sources.keys()))
+                     u" ".join(sorted(sources.keys())))
 
     cmd.add_argument('-m', "--mkrelease", 
                 help=u"Path to mkrelease script. Defaults to 'mkrelease'",
@@ -465,6 +466,8 @@ def main(*a, **kw):
 
     check_global_sanity(args)
     for package in packages:
+        if '/' in package:
+            print EGGMONKEY + "ERROR: you need to specify a package name, not a path"
         if package not in sources:
             print EGGMONKEY + "ERROR: Package %s can't be found. Quiting." % package
             sys.exit(1)
