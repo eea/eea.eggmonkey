@@ -2,6 +2,9 @@ Changelog
 =========
 [Tiberiu Ichim - tiberiu.ichim@eaudeweb.ro]
 
+0.19-dev - (unreleased)
+-----------------------
+
 0.18 - (2010-09-30)
 -------------------
  * Changed the sdist command so that it will generate zips instead of .tar.gz [tiberich #3642]
