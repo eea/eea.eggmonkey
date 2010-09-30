@@ -2,6 +2,9 @@ Changelog
 =========
 [Tiberiu Ichim - tiberiu.ichim@eaudeweb.ro]
 
+0.18-dev - (unreleased)
+-----------------------
+
 0.17 - (2010-09-30)
 -------------------
  * Remove y/n/q prompt when doing step if has argument to continue [tiberich #3642]
