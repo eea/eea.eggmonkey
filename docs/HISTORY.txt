@@ -4,6 +4,7 @@ Changelog
 
 0.19-dev - (unreleased)
 -----------------------
+ * Add MANIFEST.in file when it's missing
 
 0.18 - (2010-09-30)
 -------------------
