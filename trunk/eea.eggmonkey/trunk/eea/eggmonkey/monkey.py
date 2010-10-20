@@ -24,6 +24,10 @@ init()
 EGGMONKEY = Fore.RED + "EGGMONKEY: " + Fore.RESET
 EXTERNAL = Fore.BLUE + "RUNNING: " + Fore.RESET
 
+MANIFEST = """global-exclude *pyc
+global-exclude *~
+global-exclude *.un~
+"""
 def get_buildout():
     cwd = os.getcwd()
     cache_file = open(os.path.join(cwd, '_eggmonkey.cache'), 'r')
@@ -289,6 +293,14 @@ def release_package(package, sources, args):
 
     tag_build = None
     tag_svn_revision = None
+
+    manifest_path = os.path.join(package_path, 'MANIFEST.in')
+    if not os.path.exists(manifest_path):
+        f = open(manifest_path, 'w+')
+        f.write(MANIFEST)
+        f.close()
+        cmd = ['svn', 'add', 'MANIFEST.in']
+        subprocess.check_call(cmd, cwd=package_path)
 
     if args.manual_upload:
         #when doing manual upload, if there's a setup.cfg file, we might get strange version
