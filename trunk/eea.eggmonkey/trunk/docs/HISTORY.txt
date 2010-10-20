@@ -2,8 +2,8 @@ Changelog
 =========
 [Tiberiu Ichim - tiberiu.ichim@eaudeweb.ro]
 
-0.19-dev - (unreleased)
------------------------
+0.19 - (2010-10-20)
+-------------------
  * Add MANIFEST.in file when it's missing
 
 0.18 - (2010-09-30)
