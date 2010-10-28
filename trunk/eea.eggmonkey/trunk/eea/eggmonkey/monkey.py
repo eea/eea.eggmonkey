@@ -25,8 +25,8 @@ init()
 EGGMONKEY = Fore.RED + "EGGMONKEY: " + Fore.RESET
 EXTERNAL = Fore.BLUE + "RUNNING: " + Fore.RESET
 
-def print_msg(msg):
-    print EGGMONKEY + msg
+def print_msg(*msgs):
+    print EGGMONKEY + " ".join([str(m) for m in msgs])
 
 MANIFEST = """global-exclude *pyc
 global-exclude *~
