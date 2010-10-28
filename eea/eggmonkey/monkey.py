@@ -1,3 +1,4 @@
+from StringIO import StringIO
 from colorama import Fore, Back, Style, init
 import argparse
 import cPickle
@@ -24,10 +25,15 @@ init()
 EGGMONKEY = Fore.RED + "EGGMONKEY: " + Fore.RESET
 EXTERNAL = Fore.BLUE + "RUNNING: " + Fore.RESET
 
+def print_msg(msg):
+    print EGGMONKEY + msg
+
 MANIFEST = """global-exclude *pyc
 global-exclude *~
 global-exclude *.un~
 """
+
+
 def get_buildout():
     cwd = os.getcwd()
     cache_file = open(os.path.join(cwd, '_eggmonkey.cache'), 'r')
@@ -73,7 +79,7 @@ def bump_version(path):
     try:
         validate_version(version)
     except ValueError:
-        print EGGMONKEY + "Got invalid version " + version
+        print_msg("Got invalid version " + version)
         sys.exit(1)
 
     newver = _increment_version(version)
@@ -91,7 +97,7 @@ def get_version(path):
     try:
         validate_version(version)
     except ValueError:
-        print EGGMONKEY + "Got invalid version " + version
+        print_msg("Got invalid version " + version)
         sys.exit(1)
     return version
 
@@ -156,7 +162,7 @@ class HistoryParser(object):
         try:
             validate_version(version)
         except ValueError:
-            print EGGMONKEY + "Got invalid version " + version
+            print_msg("Got invalid version " + version)
             sys.exit(1)
         newver = _increment_version(version)
         today = str(datetime.datetime.now().date())
@@ -170,7 +176,7 @@ class HistoryParser(object):
         try:
             validate_version(version)
         except ValueError:
-            print EGGMONKEY + "Got invalid version " + version
+            print_msg("Got invalid version " + version)
             sys.exit(1)
         newver = _increment_version(version)
         line = u"%s - (unreleased)" % (newver)
@@ -198,7 +204,7 @@ class HistoryParser(object):
         try:
             validate_version(version)
         except ValueError:
-            print EGGMONKEY + "Got invalid version " + version
+            print_msg("Got invalid version " + version)
             sys.exit(1)
         return version
 
@@ -265,7 +271,7 @@ def do_step(func, step, ignore_error=False):
         func()
     except Exception, e:
         if not ignore_error:
-            print EGGMONKEY + "Got an error on step %s, but we continue: <%s>" % (step, e)
+            print_msg("Got an error on step %s, but we continue: <%s>" % (step, e))
             return
             
             #while True:
@@ -306,7 +312,7 @@ def release_package(package, sources, args):
         #when doing manual upload, if there's a setup.cfg file, we might get strange version
         #so we change it here and again after the package release
         if 'setup.cfg' in os.listdir(package_path):
-            print EGGMONKEY + "Changing setup.cfg to fit manual upload"
+            print_msg("Changing setup.cfg to fit manual upload")
             f = open(os.path.join(package_path, 'setup.cfg'), 'rw+')
             b = []
             for l in f.readlines():
@@ -329,18 +335,18 @@ def release_package(package, sources, args):
         do_step(lambda:subprocess.check_call(cmd, cwd=package_path), 
                 3, ignore_error=args.manual_upload)
     else:
-        print EGGMONKEY + "Fake operation: ", " ".join(cmd)
+        print_msg("Fake operation: ", " ".join(cmd))
 
     if args.manual_upload:
-        cmd = 'python setup.py sdist --formats zip upload -r ' + args.domain
+        cmd = args.python + ' setup.py sdist --formats zip upload -r ' + args.domain
         if not no_net:
             print EXTERNAL + cmd
             do_step(lambda:subprocess.check_call(cmd, cwd=package_path, shell=True), 4)
         else:
-            print EGGMONKEY + "Fake operation: ", cmd
+            print_msg("Fake operation: ", cmd)
 
         if tag_build:   #we write the initial version of the setup.cfg file
-            print EGGMONKEY + "Changing setup.cfg back to the original"
+            print_msg("Changing setup.cfg back to the original")
             f = open(os.path.join(package_path, 'setup.cfg'), 'rw+')
             b = []
             for l in f.readlines():
@@ -368,7 +374,7 @@ def release_package(package, sources, args):
     if not no_net:
         do_step(lambda:subprocess.check_call(cmd, cwd=os.getcwd()), 7)
     else:
-        print EGGMONKEY + "Fake operation: ", " ".join(cmd)
+        print_msg("Fake operation: ", " ".join(cmd))
 
     do_step(lambda:bump_version(package_path), 8)
     do_step(lambda:bump_history(package_path), 9)
@@ -379,7 +385,7 @@ def release_package(package, sources, args):
     if not no_net:
         do_step(lambda:subprocess.check_call(cmd, cwd=package_path), 10)
     else:
-        print EGGMONKEY + "Fake operation: ", " ".join(cmd)
+        print_msg("Fake operation: ", " ".join(cmd))
 
     return
 
@@ -404,30 +410,45 @@ def which(program):
 
 def check_global_sanity(args):
 
+    #if we need to upload egg with this python
+
     #check if mkrelease can be found
     if not which(args.mkrelease):
-        print EGGMONKEY + "Could not find mkrelease script. Quiting."
+        print_msg("Could not find mkrelease script. Quiting.")
         sys.exit(1)
 
     if not os.path.exists("versions.cfg"):
-        print EGGMONKEY + "versions.cfg file was not found. Quiting."
+        print_msg("versions.cfg file was not found. Quiting.")
         sys.exit(1)
+
+    #we check if this python has setuptools installed
+    if args.manual_upload:
+        python = args.python
+        err = open('_test_setuptools', 'wr+')
+        cmd = [python, '-m', 'setuptools']
+        exit_code = subprocess.call(cmd, stderr=err, stdout=err)
+        err.seek(0)
+        output = err.read()
+
+        if "setuptools is a package and cannot be directly executed" not in output:
+            print_msg("The specified Python doesn't have setuptools")
+            sys.exit(1)
 
 
 def check_package_sanity(package_path):
     if not os.path.exists(package_path):
-        print EGGMONKEY + "Path %s is invalid, quiting." % package_path
+        print_msg("Path %s is invalid, quiting." % package_path)
         sys.exit(1)
 
     version = get_version(package_path)
     if not "-dev" in version:
-        print EGGMONKEY + "Version.txt file is not at -dev. Quiting."
+        print_msg("Version.txt file is not at -dev. Quiting.")
         sys.exit(1)
 
     history = HistoryParser(package_path)
     version = history.get_current_version()
     if not "-dev" in version:
-        print EGGMONKEY + "HISTORY.txt file is not at -dev. Quiting."
+        print_msg("HISTORY.txt file is not at -dev. Quiting.")
         sys.exit(1)
 
 
@@ -435,7 +456,7 @@ def main(*a, **kw):
     try:
         sources, autocheckout = get_buildout()
     except Exception, e:
-        print EGGMONKEY + "Got exception while trying to open monkey cache file: ", e
+        print_msg("Got exception while trying to open monkey cache file: " + str(e))
         print "You need to run buildout first, before running the monkey"
         print "Also, make sure you run the eggmonkey from the buildout folder"
         sys.exit(1)
@@ -461,6 +482,11 @@ def main(*a, **kw):
                 help=u"Path to mkrelease script. Defaults to 'mkrelease'",
                 default="mkrelease")
 
+    cmd.add_argument('-p', "--python", 
+                     default="python",
+                     help=u"Path to Python binary which will be used to generate and upload the egg. "
+                          u"Only used when doing --manual-upload")
+
     cmd.add_argument('-d', "--domain", help=u"The repository alias. Defaults to 'eea'", default="eea")
 
     args = cmd.parse_args()
@@ -471,21 +497,22 @@ def main(*a, **kw):
         sys.exit(1)
 
     if packages and args.autocheckout:
-        print EGGMONKEY + "ERROR: specify PACKAGES or autocheckout, but not both"
+        print_msg("ERROR: specify PACKAGES or autocheckout, but not both")
         sys.exit(1)
 
     if args.autocheckout:
         packages = autocheckout
 
     check_global_sanity(args)
+
     for package in packages:
         if '/' in package:
-            print EGGMONKEY + "ERROR: you need to specify a package name, not a path"
+            print_msg("ERROR: you need to specify a package name, not a path")
         if package not in sources:
-            print EGGMONKEY + "ERROR: Package %s can't be found. Quiting." % package
+            print_msg("ERROR: Package %s can't be found. Quiting." % package)
             sys.exit(1)
 
-        print EGGMONKEY + "Releasing package: ", package
+        print_msg("Releasing package: ", package)
         release_package(package, sources, args)
 
     sys.exit(0)

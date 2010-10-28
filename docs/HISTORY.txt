@@ -4,6 +4,7 @@ Changelog
 
 0.20-dev - (unreleased)
 -----------------------
+ * Feature: Added --python configuration option to be used with manual upload [tiberich]
 
 0.19 - (2010-10-20)
 -------------------
