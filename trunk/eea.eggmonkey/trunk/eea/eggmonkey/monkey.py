@@ -451,6 +451,13 @@ def check_package_sanity(package_path):
         print_msg("HISTORY.txt file is not at -dev. Quiting.")
         sys.exit(1)
 
+    try:
+        cmd = ["svn", "up"]
+        subprocess.check_call(cmd, cwd=package_path)
+    except subprocess.CalledProcessError:
+        print_msg("Package is dirty. Quiting")
+        sys.exit(1)
+
 
 def main(*a, **kw):
     try:
