@@ -2,6 +2,9 @@ Changelog
 =========
 [Tiberiu Ichim - tiberiu.ichim@eaudeweb.ro]
 
+0.22-dev - (unreleased)
+-----------------------
+
 0.21 - (2010-10-29)
 -------------------
  * Bug fix: Run svn up before processing a package [tiberich #3806]
