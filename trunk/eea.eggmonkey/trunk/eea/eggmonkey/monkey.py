@@ -539,7 +539,7 @@ def main(*a, **kw):
     check_global_sanity(args)
 
     for package in packages:
-        if '/' in package:
+        if '/' in package:  #TODO: use os.path.sep
             print_msg("ERROR: you need to specify a package name, not a path")
         if package not in sources:
             print_msg("ERROR: Package %s can't be found. Quiting." % package)
