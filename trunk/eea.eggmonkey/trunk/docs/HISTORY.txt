@@ -4,6 +4,13 @@ Changelog
 
 0.22-dev - (unreleased)
 -----------------------
+ * Change: Add tests for version incrementing [tiberich #3807]
+ * Bug fix: Improve algorithm for version incrementing, now we also look at -svn versions [tiberich #3807]
+ * Bug fix: Improve algorithm for version validation [tiberich #3807]
+ * Bug fix: Test if mkrelease path is the same as python path, to alert for user error [tiberich #3807]
+ * Bug fix: Move svn update to the top of package sanity check [tiberich #3807]
+ * Bug fix: Look for a numeric version in the setup.py file, and fail if there is one [tiberich #3807]
+ * Bug fix: test if version in HISTORY.txt is the same as the one in version.txt [tiberich #3807]
 
 0.21 - (2010-10-29)
 -------------------
