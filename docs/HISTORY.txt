@@ -4,6 +4,7 @@ Changelog
 
 0.23-dev - (unreleased)
 -----------------------
+ * Change: Improve svn commit message when changing version to -dev [tiberich #3807]
 
 0.22 - (2010-11-10)
 -------------------

@@ -386,7 +386,7 @@ def release_package(package, sources, args):
     do_step(lambda:bump_history(package_path), 9)
 
     version = get_version(package_path)
-    cmd = ['svn', 'ci', '-m', 'Change version to %s' % version]
+    cmd = ['svn', 'ci', '-m', 'Change version for %s to %s' % (package, version)]
     print EXTERNAL + " ".join(cmd)
     if not no_net:
         do_step(lambda:subprocess.check_call(cmd, cwd=package_path), 10)
