@@ -2,8 +2,8 @@ Changelog
 =========
 [Tiberiu Ichim - tiberiu.ichim@eaudeweb.ro]
 
-0.22-dev - (unreleased)
------------------------
+0.22 - (2010-11-10)
+-------------------
  * Change: Add tests for version incrementing [tiberich #3807]
  * Bug fix: Improve algorithm for version incrementing, now we also look at -svn versions [tiberich #3807]
  * Bug fix: Improve algorithm for version validation [tiberich #3807]
