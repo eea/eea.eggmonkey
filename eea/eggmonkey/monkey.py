@@ -47,17 +47,19 @@ def find_file(path, name):
         if name in names:
             return os.path.join(root, name)
 
-    raise ValueError("Version file not found")
+    raise ValueError("File not found: %s in %s" % (name, path))
+
+def get_digits(s):
+    """Returns only the digits in a string"""
+    return "".join(filter(lambda c:c.isdigit(), s))
 
 
 def _increment_version(version):
+    devel = version.endswith('dev') or version.endswith('svn')
     ver = version.split('-')[0].split('.')
-
-    #TODO: handle the case for 0.1dev or 0.1svn
-    minor = int(ver[-1]) + int(not version.endswith("dev"))
-    devel = not version.endswith('dev')
-
-    newver = ".".join(ver[:-1]) + ".%s%s" % (minor, (devel and "-dev" or ""))
+    ver = map(get_digits, ver)
+    minor = int(ver[-1]) + int(not devel)
+    newver = ".".join(ver[:-1]) + ".%s%s" % (minor, (not devel and "-dev" or ""))
     return newver
 
 
@@ -208,6 +210,7 @@ class HistoryParser(object):
             sys.exit(1)
         return version
 
+
 def bump_history(path):
     hp = HistoryParser(path)
     hp.bump_version()
@@ -218,6 +221,9 @@ def validate_version(version):
     version = version.strip()
 
     if not "." in version:
+        raise ValueError
+
+    if version.endswith("."):
         raise ValueError
     
     #all parts need to contain digits, only the last part can contain -dev
@@ -410,9 +416,11 @@ def which(program):
 
 def check_global_sanity(args):
 
-    #if we need to upload egg with this python
-
     #check if mkrelease can be found
+    if args.mkrelease == args.python:
+        print_msg("Wrong parameters for python or mkrelease. Quiting.")
+        sys.exit(1)
+
     if not which(args.mkrelease):
         print_msg("Could not find mkrelease script. Quiting.")
         sys.exit(1)
@@ -422,6 +430,7 @@ def check_global_sanity(args):
         sys.exit(1)
 
     #we check if this python has setuptools installed
+    #we need to redirect stderr to a file, there's no other cleaner way to achieve this
     if args.manual_upload:
         python = args.python
         err = open('_test_setuptools', 'wr+')
@@ -436,26 +445,43 @@ def check_global_sanity(args):
 
 
 def check_package_sanity(package_path):
-    if not os.path.exists(package_path):
-        print_msg("Path %s is invalid, quiting." % package_path)
-        sys.exit(1)
-
-    version = get_version(package_path)
-    if not "-dev" in version:
-        print_msg("Version.txt file is not at -dev. Quiting.")
-        sys.exit(1)
-
-    history = HistoryParser(package_path)
-    version = history.get_current_version()
-    if not "-dev" in version:
-        print_msg("HISTORY.txt file is not at -dev. Quiting.")
-        sys.exit(1)
 
     try:
         cmd = ["svn", "up"]
         subprocess.check_call(cmd, cwd=package_path)
     except subprocess.CalledProcessError:
         print_msg("Package is dirty. Quiting")
+        sys.exit(1)
+
+    #check if we have hardcoded version in setup.py
+    #this is a dumb but hopefully effective method: we look for a line 
+    #starting with version= and fail if there's a number on it
+    setup_py = find_file(package_path, 'setup.py')
+    f = open(setup_py)
+    version = [l for l in f.readlines() if l.strip().startswith('version')]
+    for l in version:
+        for c in l:
+            if c.isdigit():
+                print_msg("There's a hardcoded version in the setup.py file. Quiting.")
+                sys.exit(1)
+
+    if not os.path.exists(package_path):
+        print_msg("Path %s is invalid, quiting." % package_path)
+        sys.exit(1)
+
+    vv = get_version(package_path)
+    vh = HistoryParser(package_path).get_current_version()
+
+    if not "-dev" in vv:
+        print_msg("Version.txt file is not at -dev. Quiting.")
+        sys.exit(1)
+
+    if not "-dev" in vh:
+        print_msg("HISTORY.txt file is not at -dev. Quiting.")
+        sys.exit(1)
+
+    if vh != vv:
+        print_msg("Latest version in HISTORY.txt is not the same as in version.txt. Quiting.")
         sys.exit(1)
 
 
