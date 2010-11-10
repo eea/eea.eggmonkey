@@ -2,8 +2,8 @@ Changelog
 =========
 [Tiberiu Ichim - tiberiu.ichim@eaudeweb.ro]
 
-0.23-dev - (unreleased)
------------------------
+0.23 - (2010-11-10)
+-------------------
  * Change: Improve svn commit message when changing version to -dev [tiberich #3807]
 
 0.22 - (2010-11-10)
