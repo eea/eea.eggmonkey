@@ -2,6 +2,9 @@ Changelog
 =========
 [Tiberiu Ichim - tiberiu.ichim@eaudeweb.ro]
 
+0.25-dev - (unreleased)
+-----------------------
+
 0.24 - (2010-11-11)
 -------------------
  * Bug fix: improved history file whiteline detection [tiberich #3807]
