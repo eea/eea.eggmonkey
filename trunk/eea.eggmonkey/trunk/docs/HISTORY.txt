@@ -2,8 +2,8 @@ Changelog
 =========
 [Tiberiu Ichim - tiberiu.ichim@eaudeweb.ro]
 
-0.24-dev - (unreleased)
------------------------
+0.24 - (2010-11-11)
+-------------------
  * Bug fix: improved history file whiteline detection [tiberich #3807]
  * Bug fix: made svn up only execute when network operations are allowed [tiberich #3807]
 
