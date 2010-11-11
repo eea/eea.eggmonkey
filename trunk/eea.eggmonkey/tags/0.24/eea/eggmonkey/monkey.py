@@ -1,0 +1,570 @@
+from StringIO import StringIO
+from colorama import Fore, Back, Style, init
+import argparse
+import cPickle
+import datetime
+import os
+import subprocess
+import sys
+
+
+INSTRUCTIONS = """
+#1. Bump version.txt to correct version; from -dev to final
+#2. Update history file with release date; Record final release date
+#3. Run "mkrelease -d eea" in package dir
+#4. (Optional) Run "python setup.py sdist upload -r eea"
+#5. Update versions.cfg file in buildout: svn up eea-buildout/versions.cfg
+#6. Change version for package in eea-buildout/versions.cfg
+#7. Commit versions.cfg file: svn commit versions.cfg
+#8. Bump package version file; From final to +1-dev
+#9. Update history file. Add Unreleased section
+#10. SVN commit the dev version of the package.
+"""
+
+init()
+EGGMONKEY = Fore.RED + "EGGMONKEY: " + Fore.RESET
+EXTERNAL = Fore.BLUE + "RUNNING: " + Fore.RESET
+
+def print_msg(*msgs):
+    print EGGMONKEY + " ".join([str(m) for m in msgs])
+
+MANIFEST = """global-exclude *pyc
+global-exclude *~
+global-exclude *.un~
+"""
+
+
+def get_buildout():
+    cwd = os.getcwd()
+    cache_file = open(os.path.join(cwd, '_eggmonkey.cache'), 'r')
+    buildout = cPickle.load(cache_file)
+    cache_file.close()
+    return buildout
+
+
+def find_file(path, name):
+    for root, dirs, names in os.walk(path):
+        if name in names:
+            return os.path.join(root, name)
+
+    raise ValueError("File not found: %s in %s" % (name, path))
+
+def get_digits(s):
+    """Returns only the digits in a string"""
+    return "".join(filter(lambda c:c.isdigit(), s))
+
+
+def _increment_version(version):
+    devel = version.endswith('dev') or version.endswith('svn')
+    ver = version.split('-')[0].split('.')
+    ver = map(get_digits, ver)
+    minor = int(ver[-1]) + int(not devel)
+    newver = ".".join(ver[:-1]) + ".%s%s" % (minor, (not devel and "-dev" or ""))
+    return newver
+
+
+def bump_version(path):
+    """Writes new versions into version file
+
+    It will always go from dev to final and from released to 
+    increased dev number. Example:
+
+    Called first time:
+    1.6.28-dev  =>  1.6.28
+
+    Called second time:
+    1.6.28  =>  1.6.29-dev
+    """
+    v_path = find_file(path, "version.txt")
+    f = open(v_path, 'rw+')
+    version = f.read().strip()
+    try:
+        validate_version(version)
+    except ValueError:
+        print_msg("Got invalid version " + version)
+        sys.exit(1)
+
+    newver = _increment_version(version)
+    f.truncate(0); f.seek(0) 
+    f.write(newver)
+    f.close()
+
+
+def get_version(path):
+    """Retrieves the version for a package
+    """
+    v_path = find_file(path, "version.txt")
+    f = open(v_path, 'r')
+    version = f.read().strip()
+    try:
+        validate_version(version)
+    except ValueError:
+        print_msg("Got invalid version " + version)
+        sys.exit(1)
+    return version
+
+
+class HistoryParser(object):
+    """A history parser that receives a list of lines in constructor"""
+
+    header = None
+    entries = None
+
+    def __init__(self, original):
+        self.header = []
+        self.entries = []
+        self.original = original.splitlines()
+        section_start = None
+        section_end = None
+
+        header_flag = True
+        for nr, line in enumerate(self.original):
+            if line and line[0].isdigit():
+                if (nr == len(self.original) - 1):  #we test if it's the last line
+                    section_start = nr  
+                elif self.original[nr+1].strip()[0] in "-=~^":      #we test if next line is underlined
+                    section_start = nr
+                header_flag = False
+
+                #we travel through the file until we find a new section start
+                nl = nr + 1
+                while nl < len(self.original):
+                    if self.original[nl] and self.original[nl][0].isdigit():
+                        section_end = nl - 1
+                        break
+                    nl += 1
+
+            if not section_start and header_flag:   #if there's no section, this means we have file header
+                self.header.append(line)
+
+            if section_start and section_end:   # a section is completed
+                self.entries.append(filter(lambda li:li.strip(), #we filter empty lines
+                                           self.original[section_start:section_end])) 
+                section_start = None
+                section_end = None
+
+            if section_start and (not section_end) and (nr == len(self.original) - 1):  #end of file means end of section
+                section_end = len(self.original)
+                self.entries.append(filter(lambda li:li.strip(), #we filter empty lines
+                                           self.original[section_start:section_end])) 
+
+    def _create_released_section(self):
+        section = self.entries[0]
+        header = section[0]
+        version = header.split(" ")[0]
+        try:
+            validate_version(version)
+        except ValueError:
+            print_msg("Got invalid version " + version)
+            sys.exit(1)
+        newver = _increment_version(version)
+        today = str(datetime.datetime.now().date())
+        section[0] = u"%s - (%s)" % (newver, today)
+        section[1] = u"-" * len(section[0])
+
+    def _create_dev_section(self):
+        section = self.entries[0]
+        header = section[0]
+        version = header.split(" ")[0]
+        try:
+            validate_version(version)
+        except ValueError:
+            print_msg("Got invalid version " + version)
+            sys.exit(1)
+        newver = _increment_version(version)
+        line = u"%s - (unreleased)" % (newver)
+
+        self.entries.insert(0, [
+                line,
+                u"-" * len(line)
+            ])
+
+    def get_current_version(self):
+        """Return the last version"""
+        section = self.entries[0]
+        header = section[0]
+        version = header.split(" ")[0].strip()
+        try:
+            validate_version(version)
+        except ValueError:
+            print_msg("Got invalid version " + version)
+            sys.exit(1)
+        return version
+
+
+class FileHistoryParser(HistoryParser):
+    """A history parser that also does file operations"""
+
+    def __init__(self, path):
+        h_path = find_file(path, "HISTORY.txt")
+        self.h_path = h_path
+        f = open(h_path, 'r')
+        content = f.read()
+        HistoryParser.__init__(self, content)
+        f.close()
+
+    def write(self):
+        f = open(self.h_path, 'rw+')
+        f.truncate(0); f.seek(0)
+        f.write("\n".join([l for l in self.header if l.strip()]))
+        f.write("\n\n")
+        for section in self.entries:
+            f.write("\n".join([l for l in section if l.strip()]))
+            f.write("\n\n")
+        f.close()
+
+    def bump_version(self):
+        section = self.entries[0]
+        header = section[0]
+
+        is_dev = u'unreleased' in header.lower()
+
+        if is_dev:
+            self._create_released_section()
+        else:
+            self._create_dev_section()
+
+        self.write()
+
+
+def bump_history(path):
+    hp = FileHistoryParser(path)
+    hp.bump_version()
+
+
+def validate_version(version):
+    """See if what we consider a version number is actually a valid version number"""
+    version = version.strip()
+
+    if not "." in version:
+        raise ValueError
+
+    if version.endswith("."):
+        raise ValueError
+    
+    #all parts need to contain digits, only the last part can contain -dev
+    parts = version.split('.')
+    if not len(parts) > 1:
+        raise ValueError
+
+    for part in parts[:-1]:
+        for c in part:
+            if not c.isdigit():
+                raise ValueError
+
+    lp = parts[-1]
+    if lp.endswith("-dev"):
+        lp = lp.split("-dev")
+        if (len(lp) != 2) and (lp[1] == ''):
+            raise ValueError
+        lp = lp[0]
+
+    for c in lp:
+        if not c.isdigit():
+            raise ValueError
+
+    return True
+
+
+def change_version(path, package, version):
+    f = open(path, 'rw+')
+    b = []
+    _l = "%s = %s\n" % (package, version)
+
+    found = False
+    for line in f.readlines():
+        p = line.split("=")[0].strip()
+        if p == package:
+            b.append(_l)
+            found = True
+        else:
+            b.append(line)
+
+    if not found:
+        b.append(_l)
+
+    f.truncate(0); f.seek(0)
+    f.write("".join(b))
+    f.close()
+
+
+def do_step(func, step, ignore_error=False):
+    try:
+        func()
+    except Exception, e:
+        if not ignore_error:
+            print_msg("Got an error on step %s, but we continue: <%s>" % (step, e))
+            return
+            
+            #while True:
+                #ans = raw_input(EGGMONKEY + "Do you want to continue? (y/n/q) ")
+                #if ans.lower() in "ynq":
+                    #break
+
+            #if ans.lower() == "y":
+                #return
+
+            #print "Carry on with the manual steps described in the instructions below"
+            #print "-" * 40
+            #print INSTRUCTIONS
+
+            #sys.exit(1)
+
+
+def release_package(package, sources, args):
+    no_net = args.no_network
+
+    package_path = sources[package]['path']
+    check_package_sanity(package_path, no_net)
+
+    do_step(lambda:bump_version(package_path), 1)
+    do_step(lambda:bump_history(package_path), 2)
+
+    tag_build = None
+    tag_svn_revision = None
+
+    manifest_path = os.path.join(package_path, 'MANIFEST.in')
+    if not os.path.exists(manifest_path):
+        f = open(manifest_path, 'w+')
+        f.write(MANIFEST)
+        f.close()
+        cmd = ['svn', 'add', 'MANIFEST.in']
+        subprocess.check_call(cmd, cwd=package_path)
+
+    if args.manual_upload:
+        #when doing manual upload, if there's a setup.cfg file, we might get strange version
+        #so we change it here and again after the package release
+        if 'setup.cfg' in os.listdir(package_path):
+            print_msg("Changing setup.cfg to fit manual upload")
+            f = open(os.path.join(package_path, 'setup.cfg'), 'rw+')
+            b = []
+            for l in f.readlines():
+                l = l.strip()
+                if l.startswith("tag_build"):
+                    tag_build = l
+                    b.append("tag_build = ")
+                elif l.startswith("tag_svn_revision"):
+                    tag_svn_revision = l
+                    b.append("tag_svn_revision = false")
+                else:
+                    b.append(l)
+            f.seek(0); f.truncate(0)
+            f.write("\n".join(b))
+            f.close()
+
+    cmd = [args.mkrelease, '-d', args.domain]
+    if not no_net:
+        print EXTERNAL + " ".join(cmd)
+        do_step(lambda:subprocess.check_call(cmd, cwd=package_path), 
+                3, ignore_error=args.manual_upload)
+    else:
+        print_msg("Fake operation: ", " ".join(cmd))
+
+    if args.manual_upload:
+        cmd = args.python + ' setup.py sdist --formats zip upload -r ' + args.domain
+        if not no_net:
+            print EXTERNAL + cmd
+            do_step(lambda:subprocess.check_call(cmd, cwd=package_path, shell=True), 4)
+        else:
+            print_msg("Fake operation: ", cmd)
+
+        if tag_build:   #we write the initial version of the setup.cfg file
+            print_msg("Changing setup.cfg back to the original")
+            f = open(os.path.join(package_path, 'setup.cfg'), 'rw+')
+            b = []
+            for l in f.readlines():
+                l = l.strip()
+                if l.startswith("tag_build"):
+                    b.append(tag_build)
+                elif l.startswith("tag_svn_revision"):
+                    b.append(tag_svn_revision)
+                else:
+                    b.append(l)
+            f.seek(0); f.truncate(0)
+            f.write("\n".join(b))
+            f.close()
+
+    if not no_net:
+        cmd = ['svn', 'up', 'versions.cfg']
+        print EXTERNAL + " ".join(cmd)
+        do_step(lambda:subprocess.check_call(cmd, cwd=os.getcwd()), 5)
+
+    version = get_version(package_path)
+    do_step(lambda:change_version(path=os.path.join(os.getcwd(), 'versions.cfg'), 
+                   package=package, version=version), 6)
+
+    cmd = ['svn', 'ci', 'versions.cfg', '-m', 'Updated version for %s to %s' % (package, version)]
+    print EXTERNAL + " ".join(cmd)
+    if not no_net:
+        do_step(lambda:subprocess.check_call(cmd, cwd=os.getcwd()), 7)
+    else:
+        print_msg("Fake operation: ", " ".join(cmd))
+
+    do_step(lambda:bump_version(package_path), 8)
+    do_step(lambda:bump_history(package_path), 9)
+
+    version = get_version(package_path)
+    cmd = ['svn', 'ci', '-m', 'Change version for %s to %s' % (package, version)]
+    print EXTERNAL + " ".join(cmd)
+    if not no_net:
+        do_step(lambda:subprocess.check_call(cmd, cwd=package_path), 10)
+    else:
+        print_msg("Fake operation: ", " ".join(cmd))
+
+    return
+
+
+def which(program):
+    """Check if an executable exists"""
+    def is_exe(fpath):
+        return os.path.exists(fpath) and os.access(fpath, os.X_OK)
+
+    fpath, fname = os.path.split(program)
+    if fpath:
+        if is_exe(program):
+            return program
+    else:
+        for path in os.environ["PATH"].split(os.pathsep):
+            exe_file = os.path.join(path, program)
+            if is_exe(exe_file):
+                return exe_file
+
+    return None
+
+
+def check_global_sanity(args):
+
+    #check if mkrelease can be found
+    if args.mkrelease == args.python:
+        print_msg("Wrong parameters for python or mkrelease. Quiting.")
+        sys.exit(1)
+
+    if not which(args.mkrelease):
+        print_msg("Could not find mkrelease script. Quiting.")
+        sys.exit(1)
+
+    if not os.path.exists("versions.cfg"):
+        print_msg("versions.cfg file was not found. Quiting.")
+        sys.exit(1)
+
+    #we check if this python has setuptools installed
+    #we need to redirect stderr to a file, there's no other cleaner way to achieve this
+    if args.manual_upload:
+        python = args.python
+        err = open('_test_setuptools', 'wr+')
+        cmd = [python, '-m', 'setuptools']
+        exit_code = subprocess.call(cmd, stderr=err, stdout=err)
+        err.seek(0)
+        output = err.read()
+
+        if "setuptools is a package and cannot be directly executed" not in output:
+            print_msg("The specified Python doesn't have setuptools")
+            sys.exit(1)
+
+
+def check_package_sanity(package_path, no_net=False):
+
+    try:
+        cmd = ["svn", "up"]
+        if not no_net:
+            subprocess.check_call(cmd, cwd=package_path)
+    except subprocess.CalledProcessError:
+        print_msg("Package is dirty. Quiting")
+        sys.exit(1)
+
+    #check if we have hardcoded version in setup.py
+    #this is a dumb but hopefully effective method: we look for a line 
+    #starting with version= and fail if there's a number on it
+    setup_py = find_file(package_path, 'setup.py')
+    f = open(setup_py)
+    version = [l for l in f.readlines() if l.strip().startswith('version')]
+    for l in version:
+        for c in l:
+            if c.isdigit():
+                print_msg("There's a hardcoded version in the setup.py file. Quiting.")
+                sys.exit(1)
+
+    if not os.path.exists(package_path):
+        print_msg("Path %s is invalid, quiting." % package_path)
+        sys.exit(1)
+
+    vv = get_version(package_path)
+    vh = FileHistoryParser(package_path).get_current_version()
+
+    if not "-dev" in vv:
+        print_msg("Version.txt file is not at -dev. Quiting.")
+        sys.exit(1)
+
+    if not "-dev" in vh:
+        print_msg("HISTORY.txt file is not at -dev. Quiting.")
+        sys.exit(1)
+
+    if vh != vv:
+        print_msg("Latest version in HISTORY.txt is not the same as in version.txt. Quiting.")
+        sys.exit(1)
+
+
+def main(*a, **kw):
+    try:
+        sources, autocheckout = get_buildout()
+    except Exception, e:
+        print_msg("Got exception while trying to open monkey cache file: " + str(e))
+        print "You need to run buildout first, before running the monkey"
+        print "Also, make sure you run the eggmonkey from the buildout folder"
+        sys.exit(1)
+
+    cmd = argparse.ArgumentParser(u"Eggmonkey: easy build and release of eggs\n")
+
+    cmd.add_argument('-n', "--no-network", 
+            action='store_const', const=True, default=False,
+            help=u"Don't run network operations")
+
+    cmd.add_argument('-u', "--manual-upload", action='store_const', const=True, default=False,
+                help=u"Manually upload package to eggrepo. Runs an extra " +
+                     u"upload step to ensure package is uploaded on eggrepo.")
+
+    cmd.add_argument('-a', "--autocheckout", action='store_const', const=True, default=False,
+                     help=u"Process all eggs in autocheckout")
+
+    cmd.add_argument("packages", nargs="*", metavar="PACKAGE", 
+                help=u"The packages to release. Can be any of: { %s }" % 
+                     u" ".join(sorted(sources.keys())))
+
+    cmd.add_argument('-m', "--mkrelease", 
+                help=u"Path to mkrelease script. Defaults to 'mkrelease'",
+                default="mkrelease")
+
+    cmd.add_argument('-p', "--python", 
+                     default="python",
+                     help=u"Path to Python binary which will be used to generate and upload the egg. "
+                          u"Only used when doing --manual-upload")
+
+    cmd.add_argument('-d', "--domain", help=u"The repository alias. Defaults to 'eea'", default="eea")
+
+    args = cmd.parse_args()
+
+    packages = args.packages
+    if not packages and not args.autocheckout:
+        cmd.print_help()
+        sys.exit(1)
+
+    if packages and args.autocheckout:
+        print_msg("ERROR: specify PACKAGES or autocheckout, but not both")
+        sys.exit(1)
+
+    if args.autocheckout:
+        packages = autocheckout
+
+    check_global_sanity(args)
+
+    for package in packages:
+        if '/' in package:  #TODO: use os.path.sep
+            print_msg("ERROR: you need to specify a package name, not a path")
+        if package not in sources:
+            print_msg("ERROR: Package %s can't be found. Quiting." % package)
+            sys.exit(1)
+
+        print_msg("Releasing package: ", package)
+        release_package(package, sources, args)
+
+    sys.exit(0)
