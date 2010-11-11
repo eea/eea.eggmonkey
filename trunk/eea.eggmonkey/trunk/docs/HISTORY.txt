@@ -4,6 +4,8 @@ Changelog
 
 0.24-dev - (unreleased)
 -----------------------
+ * Bug fix: improved history file whiteline detection [tiberich #3807]
+ * Bug fix: made svn up only execute when network operations are allowed [tiberich #3807]
 
 0.23 - (2010-11-10)
 -------------------
