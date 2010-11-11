@@ -1,5 +1,37 @@
 import unittest
-from eea.eggmonkey.monkey import _increment_version, validate_version
+from eea.eggmonkey.monkey import _increment_version, validate_version, HistoryParser
+import pprint
+
+
+H1 = """Changelog
+==========
+
+1.0 - (10-20-2008)
+------------------
+ * some entry
+
+"""
+
+H2 = """Changelog
+==========
+
+1.1 - (10-20-2008)
+------------------
+ * some entry
+
+1.0 - (10-19-2008)
+------------------
+
+ * something
+
+ * or other
+
+0.9 - (9-20-2008)
+-----------------
+ * and something else
+
+"""
+
 
 class MonkeyTestCase(unittest.TestCase):
 
@@ -22,8 +54,20 @@ class MonkeyTestCase(unittest.TestCase):
         self.assertRaises(ValueError, validate_version, "1-dev.0")
         self.assertRaises(ValueError, validate_version, "1.0-dev.0")
 
+    def test_history_parser(self):
+        hp = HistoryParser(H1)
+        assert hp.get_current_version() == "1.0"
 
+        hp = HistoryParser(H2)
+        es = hp.entries
+        assert len(es) == 3
+        assert len(es[0]) == 3
+        assert len(es[1]) == 4
+        assert len(es[2]) == 3
 
 def test_suite():
     suite = unittest.TestLoader().loadTestsFromTestCase(MonkeyTestCase)
     return suite
+
+if __name__ == "__main__":
+    unittest.main()

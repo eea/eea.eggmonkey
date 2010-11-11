@@ -105,57 +105,48 @@ def get_version(path):
 
 
 class HistoryParser(object):
+    """A history parser that receives a list of lines in constructor"""
+
     header = None
     entries = None
 
-    def __init__(self, path):
+    def __init__(self, original):
         self.header = []
         self.entries = []
-        h_path = find_file(path, "HISTORY.txt")
-        self.h_path = h_path
-        f = open(h_path, 'r')
-        content = f.read()
-        self.original = content.splitlines()
+        self.original = original.splitlines()
         section_start = None
         section_end = None
 
+        header_flag = True
         for nr, line in enumerate(self.original):
-
             if line and line[0].isdigit():
                 if (nr == len(self.original) - 1):  #we test if it's the last line
                     section_start = nr  
                 elif self.original[nr+1].strip()[0] in "-=~^":      #we test if next line is underlined
                     section_start = nr
+                header_flag = False
 
-            if (not line.strip()) and section_start:    #empty line, end of section
-                section_end = nr
+                #we travel through the file until we find a new section start
+                nl = nr + 1
+                while nl < len(self.original):
+                    if self.original[nl] and self.original[nl][0].isdigit():
+                        section_end = nl - 1
+                        break
+                    nl += 1
 
-            if not section_start:
+            if not section_start and header_flag:   #if there's no section, this means we have file header
                 self.header.append(line)
 
-            if section_start and section_end:
-                self.entries.append(self.original[section_start:section_end])
+            if section_start and section_end:   # a section is completed
+                self.entries.append(filter(lambda li:li.strip(), #we filter empty lines
+                                           self.original[section_start:section_end])) 
                 section_start = None
                 section_end = None
 
-            if section_start and (not section_end) and (nr == len(self.original) - 1):
+            if section_start and (not section_end) and (nr == len(self.original) - 1):  #end of file means end of section
                 section_end = len(self.original)
-                self.entries.append(self.original[section_start:section_end])
-
-        f.close()
-
-    def bump_version(self):
-        section = self.entries[0]
-        header = section[0]
-
-        is_dev = u'unreleased' in header.lower()
-
-        if is_dev:
-            self._create_released_section()
-        else:
-            self._create_dev_section()
-
-        self.write()
+                self.entries.append(filter(lambda li:li.strip(), #we filter empty lines
+                                           self.original[section_start:section_end])) 
 
     def _create_released_section(self):
         section = self.entries[0]
@@ -188,16 +179,6 @@ class HistoryParser(object):
                 u"-" * len(line)
             ])
 
-    def write(self):
-        f = open(self.h_path, 'rw+')
-        f.truncate(0); f.seek(0)
-        f.write("\n".join([l for l in self.header if l.strip()]))
-        f.write("\n\n")
-        for section in self.entries:
-            f.write("\n".join([l for l in section if l.strip()]))
-            f.write("\n\n")
-        f.close()
-
     def get_current_version(self):
         """Return the last version"""
         section = self.entries[0]
@@ -211,8 +192,43 @@ class HistoryParser(object):
         return version
 
 
+class FileHistoryParser(HistoryParser):
+    """A history parser that also does file operations"""
+
+    def __init__(self, path):
+        h_path = find_file(path, "HISTORY.txt")
+        self.h_path = h_path
+        f = open(h_path, 'r')
+        content = f.read()
+        HistoryParser.__init__(self, content)
+        f.close()
+
+    def write(self):
+        f = open(self.h_path, 'rw+')
+        f.truncate(0); f.seek(0)
+        f.write("\n".join([l for l in self.header if l.strip()]))
+        f.write("\n\n")
+        for section in self.entries:
+            f.write("\n".join([l for l in section if l.strip()]))
+            f.write("\n\n")
+        f.close()
+
+    def bump_version(self):
+        section = self.entries[0]
+        header = section[0]
+
+        is_dev = u'unreleased' in header.lower()
+
+        if is_dev:
+            self._create_released_section()
+        else:
+            self._create_dev_section()
+
+        self.write()
+
+
 def bump_history(path):
-    hp = HistoryParser(path)
+    hp = FileHistoryParser(path)
     hp.bump_version()
 
 
@@ -296,9 +312,10 @@ def do_step(func, step, ignore_error=False):
 
 
 def release_package(package, sources, args):
-    package_path = sources[package]['path']
-    check_package_sanity(package_path)
     no_net = args.no_network
+
+    package_path = sources[package]['path']
+    check_package_sanity(package_path, no_net)
 
     do_step(lambda:bump_version(package_path), 1)
     do_step(lambda:bump_history(package_path), 2)
@@ -367,9 +384,10 @@ def release_package(package, sources, args):
             f.write("\n".join(b))
             f.close()
 
-    cmd = ['svn', 'up', 'versions.cfg']
-    print EXTERNAL + " ".join(cmd)
-    do_step(lambda:subprocess.check_call(cmd, cwd=os.getcwd()), 5)
+    if not no_net:
+        cmd = ['svn', 'up', 'versions.cfg']
+        print EXTERNAL + " ".join(cmd)
+        do_step(lambda:subprocess.check_call(cmd, cwd=os.getcwd()), 5)
 
     version = get_version(package_path)
     do_step(lambda:change_version(path=os.path.join(os.getcwd(), 'versions.cfg'), 
@@ -444,11 +462,12 @@ def check_global_sanity(args):
             sys.exit(1)
 
 
-def check_package_sanity(package_path):
+def check_package_sanity(package_path, no_net=False):
 
     try:
         cmd = ["svn", "up"]
-        subprocess.check_call(cmd, cwd=package_path)
+        if not no_net:
+            subprocess.check_call(cmd, cwd=package_path)
     except subprocess.CalledProcessError:
         print_msg("Package is dirty. Quiting")
         sys.exit(1)
@@ -470,7 +489,7 @@ def check_package_sanity(package_path):
         sys.exit(1)
 
     vv = get_version(package_path)
-    vh = HistoryParser(package_path).get_current_version()
+    vh = FileHistoryParser(package_path).get_current_version()
 
     if not "-dev" in vv:
         print_msg("Version.txt file is not at -dev. Quiting.")
