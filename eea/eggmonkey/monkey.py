@@ -359,7 +359,7 @@ def release_package(package, sources, args):
             f.close()
 
     domains = []
-    for d in args.domains:
+    for d in args.domain:
         domains.extend(['-d', d])
     cmd = [args.mkrelease] + domains    #, '-d', args.domain]
     if not no_net:
