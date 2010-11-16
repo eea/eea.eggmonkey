@@ -25,8 +25,14 @@ init()
 EGGMONKEY = Fore.RED + "EGGMONKEY: " + Fore.RESET
 EXTERNAL = Fore.BLUE + "RUNNING: " + Fore.RESET
 
+
 def print_msg(*msgs):
     print EGGMONKEY + " ".join([str(m) for m in msgs])
+
+
+class Error(Exception):
+    """ EggMonkey runtime error """
+
 
 MANIFEST = """global-exclude *pyc
 global-exclude *~
@@ -48,6 +54,7 @@ def find_file(path, name):
             return os.path.join(root, name)
 
     raise ValueError("File not found: %s in %s" % (name, path))
+
 
 def get_digits(s):
     """Returns only the digits in a string"""
@@ -81,8 +88,7 @@ def bump_version(path):
     try:
         validate_version(version)
     except ValueError:
-        print_msg("Got invalid version " + version)
-        sys.exit(1)
+        raise Error("Got invalid version " + version)
 
     newver = _increment_version(version)
     f.truncate(0); f.seek(0) 
@@ -99,8 +105,8 @@ def get_version(path):
     try:
         validate_version(version)
     except ValueError:
-        print_msg("Got invalid version " + version)
-        sys.exit(1)
+        raise Error("Got invalid version " + version)
+
     return version
 
 
@@ -155,8 +161,8 @@ class HistoryParser(object):
         try:
             validate_version(version)
         except ValueError:
-            print_msg("Got invalid version " + version)
-            sys.exit(1)
+            raise Error("Got invalid version " + version)
+
         newver = _increment_version(version)
         today = str(datetime.datetime.now().date())
         section[0] = u"%s - (%s)" % (newver, today)
@@ -169,8 +175,8 @@ class HistoryParser(object):
         try:
             validate_version(version)
         except ValueError:
-            print_msg("Got invalid version " + version)
-            sys.exit(1)
+            raise Error("Got invalid version " + version)
+
         newver = _increment_version(version)
         line = u"%s - (unreleased)" % (newver)
 
@@ -187,8 +193,8 @@ class HistoryParser(object):
         try:
             validate_version(version)
         except ValueError:
-            print_msg("Got invalid version " + version)
-            sys.exit(1)
+            raise Error("Got invalid version " + version)
+
         return version
 
 
@@ -315,7 +321,7 @@ def release_package(package, sources, args):
     no_net = args.no_network
 
     package_path = sources[package]['path']
-    check_package_sanity(package_path, no_net)
+    check_package_sanity(package_path, args, no_net)
 
     do_step(lambda:bump_version(package_path), 1)
     do_step(lambda:bump_history(package_path), 2)
@@ -352,7 +358,10 @@ def release_package(package, sources, args):
             f.write("\n".join(b))
             f.close()
 
-    cmd = [args.mkrelease, '-d', args.domain]
+    domains = []
+    for d in args.domains:
+        domains.extend(['-d', d])
+    cmd = [args.mkrelease] + domains    #, '-d', args.domain]
     if not no_net:
         print EXTERNAL + " ".join(cmd)
         do_step(lambda:subprocess.check_call(cmd, cwd=package_path), 
@@ -436,16 +445,13 @@ def check_global_sanity(args):
 
     #check if mkrelease can be found
     if args.mkrelease == args.python:
-        print_msg("Wrong parameters for python or mkrelease. Quiting.")
-        sys.exit(1)
+        raise Error("Wrong parameters for python or mkrelease. Quiting.")
 
     if not which(args.mkrelease):
-        print_msg("Could not find mkrelease script. Quiting.")
-        sys.exit(1)
+        raise Error("Could not find mkrelease script. Quiting.")
 
     if not os.path.exists("versions.cfg"):
-        print_msg("versions.cfg file was not found. Quiting.")
-        sys.exit(1)
+        raise Error("versions.cfg file was not found. Quiting.")
 
     #we check if this python has setuptools installed
     #we need to redirect stderr to a file, there's no other cleaner way to achieve this
@@ -458,19 +464,21 @@ def check_global_sanity(args):
         output = err.read()
 
         if "setuptools is a package and cannot be directly executed" not in output:
-            print_msg("The specified Python doesn't have setuptools")
-            sys.exit(1)
+            raise Error("The specified Python doesn't have setuptools")
+
+    #we don't support manual upload with multiple repositories
+    if args.manual_upload and len(args.domain) > 1:
+        raise Error("Can't have multiple repositories when doing a manual upload")
 
 
-def check_package_sanity(package_path, no_net=False):
+def check_package_sanity(package_path, args, no_net=False):
 
     try:
         cmd = ["svn", "up"]
         if not no_net:
             subprocess.check_call(cmd, cwd=package_path)
     except subprocess.CalledProcessError:
-        print_msg("Package is dirty. Quiting")
-        sys.exit(1)
+        raise Error("Package is dirty. Quiting")
 
     #check if we have hardcoded version in setup.py
     #this is a dumb but hopefully effective method: we look for a line 
@@ -481,27 +489,39 @@ def check_package_sanity(package_path, no_net=False):
     for l in version:
         for c in l:
             if c.isdigit():
-                print_msg("There's a hardcoded version in the setup.py file. Quiting.")
-                sys.exit(1)
+                raise Error("There's a hardcoded version in the setup.py file. Quiting.")
 
     if not os.path.exists(package_path):
-        print_msg("Path %s is invalid, quiting." % package_path)
-        sys.exit(1)
+        raise Error("Path %s is invalid, quiting." % package_path)
 
     vv = get_version(package_path)
     vh = FileHistoryParser(package_path).get_current_version()
 
     if not "-dev" in vv:
-        print_msg("Version.txt file is not at -dev. Quiting.")
-        sys.exit(1)
+        raise Error("Version.txt file is not at -dev. Quiting.")
 
     if not "-dev" in vh:
-        print_msg("HISTORY.txt file is not at -dev. Quiting.")
-        sys.exit(1)
+        raise Error("HISTORY.txt file is not at -dev. Quiting.")
 
     if vh != vv:
-        print_msg("Latest version in HISTORY.txt is not the same as in version.txt. Quiting.")
-        sys.exit(1)
+        raise Error("Latest version in HISTORY.txt is not the same as in version.txt. Quiting.")
+
+    #we depend on collective.dist installed in the python.
+    #Installing eggmonkey under buildout with a different python doesn't
+    #install properly the collective.dist
+    print_msg("Installing collective.dist in ", args.python)
+    try:
+        cmd = args.python + " setup.py easy_install -U collective.dist"
+        subprocess.check_call(cmd, cwd=package_path, shell=True)
+    except subprocess.CalledProcessError:
+        raise Error("Failed to install collective.dist in", args.python)
+
+    #check if package metadata is properly filled
+    try:
+        cmd = args.python + " setup.py check --strict"
+        subprocess.check_call(cmd, cwd=package_path, shell=True)
+    except subprocess.CalledProcessError:
+        raise Error("Package has improperly filled metadata. Quiting")
 
 
 def main(*a, **kw):
@@ -539,32 +559,38 @@ def main(*a, **kw):
                      help=u"Path to Python binary which will be used to generate and upload the egg. "
                           u"Only used when doing --manual-upload")
 
-    cmd.add_argument('-d', "--domain", help=u"The repository alias. Defaults to 'eea'", default="eea")
+    cmd.add_argument('-d', "--domain", action="append", help=u"The repository aliases. Defaults to 'eea'. "
+                        "Specify multiple times to upload egg to multiple repositories.", default=[])
 
     args = cmd.parse_args()
+    if not args.domain:
+        args.domain = ['eea']
 
     packages = args.packages
     if not packages and not args.autocheckout:
         cmd.print_help()
         sys.exit(1)
 
-    if packages and args.autocheckout:
-        print_msg("ERROR: specify PACKAGES or autocheckout, but not both")
+    try:
+        if packages and args.autocheckout:
+            raise Error("ERROR: specify PACKAGES or autocheckout, but not both")
+
+        if args.autocheckout:
+            packages = autocheckout
+
+        check_global_sanity(args)
+
+        for package in packages:
+            if os.path.sep in package:
+                raise Error("ERROR: you need to specify a package name, not a path")
+            if package not in sources:
+                raise Error("ERROR: Package %s can't be found. Quiting." % package)
+
+            print_msg("Releasing package: ", package)
+            release_package(package, sources, args)
+
+    except Error, e:
+        print_msg(" ".join(e.args))
         sys.exit(1)
-
-    if args.autocheckout:
-        packages = autocheckout
-
-    check_global_sanity(args)
-
-    for package in packages:
-        if '/' in package:  #TODO: use os.path.sep
-            print_msg("ERROR: you need to specify a package name, not a path")
-        if package not in sources:
-            print_msg("ERROR: Package %s can't be found. Quiting." % package)
-            sys.exit(1)
-
-        print_msg("Releasing package: ", package)
-        release_package(package, sources, args)
 
     sys.exit(0)
