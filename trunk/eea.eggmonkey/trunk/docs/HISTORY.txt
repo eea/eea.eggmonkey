@@ -2,8 +2,8 @@ Changelog
 =========
 [Tiberiu Ichim - tiberiu.ichim@eaudeweb.ro]
 
-0.25 - (2010-11-16)
--------------------
+0.25-dev - (unreleased)
+-----------------------
  * Feature: use collective.dist to check for package metadata validity [tiberich #3851]
  * Feature: now you can specify multiple repositories to register and upload egg [tiberich #3850]
  * Change: use exception raising for exiting the program [tiberich]
