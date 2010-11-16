@@ -21,7 +21,7 @@ setup(name=name,
             "Programming Language :: Python",
             ],
         keywords='buildout',
-        author='Tiberiu Ichim',
+        #author='Tiberiu Ichim',
         author_email='tiberiu@eaudeweb.ro',
         url='https://svn.eionet.europa.eu/repositories/Zope/trunk/eea.eggmonkey',
         license='GPL',
@@ -36,6 +36,7 @@ setup(name=name,
             'mr.developer',
             'argparse', #TODO: test python version, it comes included with Python 2.7
             'colorama',
+            'collective.dist',
             ],
         entry_points={
             "console_scripts":[
