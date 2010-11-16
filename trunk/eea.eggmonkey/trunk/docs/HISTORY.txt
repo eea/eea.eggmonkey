@@ -2,6 +2,9 @@ Changelog
 =========
 [Tiberiu Ichim - tiberiu.ichim@eaudeweb.ro]
 
+0.26-dev - (unreleased)
+-----------------------
+
 0.25 - (2010-11-16)
 -------------------
  * Feature: use collective.dist to check for package metadata validity [tiberich #3851]
