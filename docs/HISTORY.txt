@@ -2,6 +2,9 @@ Changelog
 =========
 [Tiberiu Ichim - tiberiu.ichim@eaudeweb.ro]
 
+0.27-dev - (unreleased)
+-----------------------
+
 0.26 - (2010-11-19)
 -------------------
  * Bug fix: fix bug in releasing egg with -u switch [tiberich]
