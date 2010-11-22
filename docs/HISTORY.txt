@@ -2,8 +2,8 @@ Changelog
 =========
 [Tiberiu Ichim - tiberiu.ichim@eaudeweb.ro]
 
-0.27-dev - (unreleased)
------------------------
+0.27 - (2010-11-22)
+-------------------
  * Feature: allow custom configuration in ~/.eggmonkey [tiberich]
  * Change: Use -q (quiet) flag when running mkrelease and easy_install [tiberich #3858]
 
