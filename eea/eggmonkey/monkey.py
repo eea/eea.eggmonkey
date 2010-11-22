@@ -1,5 +1,6 @@
 from StringIO import StringIO
 from colorama import Fore, Back, Style, init
+import ConfigParser
 import argparse
 import cPickle
 import datetime
@@ -302,26 +303,17 @@ def do_step(func, step, ignore_error=False):
             print_msg("Got an error on step %s, but we continue: <%s>" % (step, e))
             return
             
-            #while True:
-                #ans = raw_input(EGGMONKEY + "Do you want to continue? (y/n/q) ")
-                #if ans.lower() in "ynq":
-                    #break
 
-            #if ans.lower() == "y":
-                #return
+def release_package(package, sources, args, config):
+    python = get_config(config, "python", args.python, section=package)
+    domain = get_config(config, "domain", args.domain, section=package)
+    manual_upload = get_config(config, "manual_upload", args.manual_upload, section=package)
+    mkrelease = get_config(config, "mkrelease", args.mkrelease, section=package)
 
-            #print "Carry on with the manual steps described in the instructions below"
-            #print "-" * 40
-            #print INSTRUCTIONS
-
-            #sys.exit(1)
-
-
-def release_package(package, sources, args):
     no_net = args.no_network
 
     package_path = sources[package]['path']
-    check_package_sanity(package_path, args, no_net)
+    check_package_sanity(package_path, python, mkrelease, no_net)
 
     do_step(lambda:bump_version(package_path), 1)
     do_step(lambda:bump_history(package_path), 2)
@@ -337,7 +329,7 @@ def release_package(package, sources, args):
         cmd = ['svn', 'add', 'MANIFEST.in']
         subprocess.check_call(cmd, cwd=package_path)
 
-    if args.manual_upload:
+    if manual_upload:
         #when doing manual upload, if there's a setup.cfg file, we might get strange version
         #so we change it here and again after the package release
         if 'setup.cfg' in os.listdir(package_path):
@@ -359,18 +351,18 @@ def release_package(package, sources, args):
             f.close()
 
     domains = []
-    for d in args.domain:
+    for d in domain:
         domains.extend(['-d', d])
-    cmd = [args.mkrelease] + domains    #, '-d', args.domain]
+    cmd = [mkrelease, "-q"] + domains    #, '-d', args.domain]
     if not no_net:
         print EXTERNAL + " ".join(cmd)
         do_step(lambda:subprocess.check_call(cmd, cwd=package_path), 
-                3, ignore_error=args.manual_upload)
+                3, ignore_error=manual_upload)
     else:
         print_msg("Fake operation: ", " ".join(cmd))
 
-    if args.manual_upload:
-        cmd = args.python + ' setup.py sdist --formats zip upload -r ' + args.domain[0]
+    if manual_upload:
+        cmd = python + ' setup.py sdist --formats zip upload -r ' + domain[0]
         if not no_net:
             print EXTERNAL + cmd
             do_step(lambda:subprocess.check_call(cmd, cwd=package_path, shell=True), 4)
@@ -397,14 +389,16 @@ def release_package(package, sources, args):
         cmd = ['svn', 'up', 'versions.cfg']
         print EXTERNAL + " ".join(cmd)
         do_step(lambda:subprocess.check_call(cmd, cwd=os.getcwd()), 5)
+    else:
+        print_msg("Fake operation: ", " ".join(cmd))
 
     version = get_version(package_path)
     do_step(lambda:change_version(path=os.path.join(os.getcwd(), 'versions.cfg'), 
                    package=package, version=version), 6)
 
     cmd = ['svn', 'ci', 'versions.cfg', '-m', 'Updated version for %s to %s' % (package, version)]
-    print EXTERNAL + " ".join(cmd)
     if not no_net:
+        print EXTERNAL + " ".join(cmd)
         do_step(lambda:subprocess.check_call(cmd, cwd=os.getcwd()), 7)
     else:
         print_msg("Fake operation: ", " ".join(cmd))
@@ -414,8 +408,8 @@ def release_package(package, sources, args):
 
     version = get_version(package_path)
     cmd = ['svn', 'ci', '-m', 'Change version for %s to %s' % (package, version)]
-    print EXTERNAL + " ".join(cmd)
     if not no_net:
+        print EXTERNAL + " ".join(cmd)
         do_step(lambda:subprocess.check_call(cmd, cwd=package_path), 10)
     else:
         print_msg("Fake operation: ", " ".join(cmd))
@@ -441,37 +435,59 @@ def which(program):
     return None
 
 
-def check_global_sanity(args):
-
-    #check if mkrelease can be found
-    if args.mkrelease == args.python:
-        raise Error("Wrong parameters for python or mkrelease. Quiting.")
-
-    if not which(args.mkrelease):
-        raise Error("Could not find mkrelease script. Quiting.")
+def check_global_sanity(args, config):
+    #we check sanity for the arguments that come from the command line
+    #and also arguments that come for each package from the configuration file
 
     if not os.path.exists("versions.cfg"):
         raise Error("versions.cfg file was not found. Quiting.")
 
-    #we check if this python has setuptools installed
-    #we need to redirect stderr to a file, there's no other cleaner way to achieve this
-    if args.manual_upload:
-        python = args.python
-        err = open('_test_setuptools', 'wr+')
-        cmd = [python, '-m', 'setuptools']
-        exit_code = subprocess.call(cmd, stderr=err, stdout=err)
-        err.seek(0)
-        output = err.read()
+    def _check(domain, manual_upload, mkrelease, python):
 
-        if "setuptools is a package and cannot be directly executed" not in output:
-            raise Error("The specified Python doesn't have setuptools")
+        #check if mkrelease can be found
+        if ((mkrelease, python) != (None, None)) and (mkrelease == python):
+            raise Error("Wrong parameters for python or mkrelease. Quiting.")
 
-    #we don't support manual upload with multiple repositories
-    if args.manual_upload and len(args.domain) > 1:
-        raise Error("Can't have multiple repositories when doing a manual upload")
+        if (mkrelease != None) and not which(mkrelease):
+            raise Error("Could not find mkrelease script. Quiting.")
+
+        #we check if this python has setuptools installed
+        #we need to redirect stderr to a file, I see no cleaner way to achieve this
+        if (manual_upload != None) and manual_upload:
+            err = open('_test_setuptools', 'wr+')
+            cmd = [python, '-m', 'setuptools']
+            exit_code = subprocess.call(cmd, stderr=err, stdout=err)
+            err.seek(0)
+            output = err.read()
+
+            if "setuptools is a package and cannot be directly executed" not in output:
+                raise Error("The specified Python doesn't have setuptools")
+
+        #we don't support manual upload with multiple repositories
+        if (manual_upload != None) and manual_upload and len(domain) > 1:
+            raise Error("Can't have multiple repositories when doing a manual upload")
+
+    tocheck = [('default', {
+        'domain':args.domain,
+        'manual_upload':args.manual_upload,
+        'mkrelease':args.mkrelease,
+        'python':args.python,
+    })]
+
+    if config != None:
+        for section in filter(lambda s:s.strip() != "*", config.sections()):
+            tocheck.append((section, {
+                'domain':get_config(config, "domain", "", section=section).split() or [],
+                'manual_upload':(get_config(config, "manual_upload", None, 'getboolean', section) in (False, True)) or args.manual_upload,
+                'mkrelease':get_config(config, "mkrelease", None, section=section) or args.mkrelease,
+                'python':get_config(config, "python", None, section=section) or args.python,
+                }))
+
+    for s in tocheck:
+        _check(**s[1])
 
 
-def check_package_sanity(package_path, args, no_net=False):
+def check_package_sanity(package_path, python, mkrelease, no_net=False):
 
     try:
         cmd = ["svn", "up"]
@@ -509,19 +525,43 @@ def check_package_sanity(package_path, args, no_net=False):
     #we depend on collective.dist installed in the python.
     #Installing eggmonkey under buildout with a different python doesn't
     #install properly the collective.dist
-    print_msg("Installing collective.dist in ", args.python)
-    try:
-        cmd = args.python + " setup.py easy_install -U collective.dist"
-        subprocess.check_call(cmd, cwd=package_path, shell=True)
-    except subprocess.CalledProcessError:
-        raise Error("Failed to install collective.dist in", args.python)
+    print_msg("Installing collective.dist in ", python)
+    cmd = python + " setup.py easy_install -q -U collective.dist"
+    if not no_net:
+        try:
+            subprocess.check_call(cmd, cwd=package_path, shell=True)
+        except subprocess.CalledProcessError:
+            raise Error("Failed to install collective.dist in", python)
+    else:
+        print_msg("Fake operation: " + cmd)
 
     #check if package metadata is properly filled
     try:
-        cmd = args.python + " setup.py check --strict"
+        cmd = python + " setup.py check --strict"
         subprocess.check_call(cmd, cwd=package_path, shell=True)
     except subprocess.CalledProcessError:
         raise Error("Package has improperly filled metadata. Quiting")
+
+
+def get_config(cfg, name, value, method="get", section="*"):
+    """Return a default value from a ConfigParser object
+
+    @param cfg: ConfigParser object or None
+    @param method: the method that will be used to get the default)
+    @param value: the default value that will be returned, in case the option does not exist
+    """
+    if cfg is None:
+        return value
+
+    m = getattr(cfg, method)
+    try:
+        v = m(section, name)
+    except ConfigParser.NoOptionError:
+        v = value
+    except ValueError:
+        print_msg("Got an error parsing config file, option: %s and section: %s" % (name, section))
+        sys.exit(1)
+    return v
 
 
 def main(*a, **kw):
@@ -533,13 +573,20 @@ def main(*a, **kw):
         print "Also, make sure you run the eggmonkey from the buildout folder"
         sys.exit(1)
 
+    config = None
+    cfg_file = os.path.expanduser("~/.eggmonkey")
+    if os.path.exists(cfg_file):
+        config = ConfigParser.SafeConfigParser()
+        config.read([cfg_file])
+
     cmd = argparse.ArgumentParser(u"Eggmonkey: easy build and release of eggs\n")
 
     cmd.add_argument('-n', "--no-network", 
             action='store_const', const=True, default=False,
             help=u"Don't run network operations")
 
-    cmd.add_argument('-u', "--manual-upload", action='store_const', const=True, default=False,
+    cmd.add_argument('-u', "--manual-upload", action='store_const', const=True, 
+                default=get_config(config, "manual_upload", False, 'getboolean'),
                 help=u"Manually upload package to eggrepo. Runs an extra " +
                      u"upload step to ensure package is uploaded on eggrepo.")
 
@@ -547,22 +594,25 @@ def main(*a, **kw):
                      help=u"Process all eggs in autocheckout")
 
     cmd.add_argument("packages", nargs="*", metavar="PACKAGE", 
-                help=u"The packages to release. Can be any of: { %s }" % 
+                help=u"The packages to release. Can be any of: [ %s ]" % 
                      u" ".join(sorted(sources.keys())))
 
     cmd.add_argument('-m', "--mkrelease", 
-                help=u"Path to mkrelease script. Defaults to 'mkrelease'",
-                default="mkrelease")
+                default=os.path.expanduser(get_config(config, "mkrelease", "mkrelease")),
+                help=u"Path to mkrelease script. Defaults to 'mkrelease'")
 
     cmd.add_argument('-p', "--python", 
-                     default="python",
+                     default=os.path.expanduser(get_config(config, "python", "python")),
                      help=u"Path to Python binary which will be used to generate and upload the egg. "
                           u"Only used when doing --manual-upload")
 
     cmd.add_argument('-d', "--domain", action="append", help=u"The repository aliases. Defaults to 'eea'. "
-                        "Specify multiple times to upload egg to multiple repositories.", default=[])
+                        "Specify multiple times to upload egg to multiple repositories.", 
+                        default=get_config(config, "domain", "").split() or [],
+                    )
 
     args = cmd.parse_args()
+
     if not args.domain:
         args.domain = ['eea']
 
@@ -578,7 +628,7 @@ def main(*a, **kw):
         if args.autocheckout:
             packages = autocheckout
 
-        check_global_sanity(args)
+        check_global_sanity(args, config)
 
         for package in packages:
             if os.path.sep in package:
@@ -587,7 +637,7 @@ def main(*a, **kw):
                 raise Error("ERROR: Package %s can't be found. Quiting." % package)
 
             print_msg("Releasing package: ", package)
-            release_package(package, sources, args)
+            release_package(package, sources, args, config)
 
     except Error, e:
         print_msg(" ".join(e.args))

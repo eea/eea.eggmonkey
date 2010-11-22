@@ -4,6 +4,8 @@ Changelog
 
 0.27-dev - (unreleased)
 -----------------------
+ * Feature: allow custom configuration in ~/.eggmonkey [tiberich]
+ * Change: Use -q (quiet) flag when running mkrelease and easy_install [tiberich #3858]
 
 0.26 - (2010-11-19)
 -------------------

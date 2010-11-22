@@ -1,9 +1,9 @@
 eea.eggmonkey
 =============
 
-This tools should be used together with zc.buildout, mr.developer and 
-jarn.mkrelease. Its purpose is to automate a series of 10 steps that
-are required in order to produce and upload an egg on the eggrepo.
+This tools should be used together with zc.buildout, mr.developer and
+jarn.mkrelease. Its purpose is to automate a series of 10 steps that are
+required in order to produce and upload an egg on the eggrepo.
 
 The ten steps are:
 
@@ -24,7 +24,8 @@ eea.eggmonkey requires python2.6
 
 Instalation
 -----------
-To use it, you need to add eea.eggmonkey as an extension to zc.buildout, for example:
+To use it, you need to add eea.eggmonkey as an extension to zc.buildout, for
+example:
 
 [buildout]
 
@@ -36,7 +37,8 @@ parts =
     monkey
     ...
 
-Also, you need to add a new part (+ the python26 part, if you don't already have it):
+Also, you need to add a new part (+ the python26 part, if you don't already
+have it):
 
 [monkey]
 recipe = zc.recipe.egg
@@ -49,7 +51,8 @@ executable = /usr/bin/python2.6
 Usage
 -----
 Before you use it, you need to run bin/buildout (or bin/develop) at least once.
-This allows eggmonkey to learn about the sources and the packages in auto-checkout.
+This allows eggmonkey to learn about the sources and the packages in
+auto-checkout.
 
 After that, you can use the monkey script from bin. Learn about its parameters
 by running 
@@ -60,33 +63,38 @@ Typical usage would be:
 
     ``bin/monkey eea.indicators``
 
-You can specify multiple packages on the command line, they
-will all be processed:
+You can specify multiple packages on the command line, they will all be
+processed:
 
     ``bin/monkey eea.indicators eea.workflow eea.version
 
-Or, if you want to release all eggs specified in the 
-auto-checkout section of buildout:
+Or, if you want to release all eggs specified in the auto-checkout section of
+buildout:
 
     ``bin/monkey -a``
 
-There is a special option that allows doing a manual upload 
-operation of the egg to the eggrepo, using the -u switch:
+There is a special option that works around bugs in registering the egg with
+eggrepos and will run a "python sdist upload" operation, using the -u switch:
 
     ``bin/monkey -u eea.indicators``
 
-If you need to specify the path to the mkrelease script, you 
-can give it as an argument to the script, using the -m switch:
+If you're doing manual upload, you may need to specify a different python path,
+with the -p switch:
+
+    ``bin/monkey -u eea.indicators -p ~/tools/bin/python``
+
+If you need to specify the path to the mkrelease script, you can give it as an
+argument to the script, using the -m switch:
 
     ``bin/monkey eea.indicators -m /path/to/bin/mkrelease``
 
-If you don't want to specify this path, place the mkrelease
-script in the PATH environment variable (typically this can
-be achieved by activating its virtualenv).
+If you don't want to specify this path, place the mkrelease script in the PATH
+environment variable (typically this can be achieved by activating its
+virtualenv).
 
-Finally, if you're releasing eggs to a different repository, or 
-if you have eggrepo.eea.europa.eu aliased as something different 
-then "eea", you can manually specify this using the -d switch:
+Finally, if you're releasing eggs to a different repository, or if you have
+eggrepo.eea.europa.eu aliased as something different then "eea", you can
+manually specify this using the -d switch:
 
     ``bin/monkey -d eeaeggs eea.indicators``
 
@@ -95,3 +103,22 @@ during testing), you can run
 
     ``bin/monkey -n eea.indicators``
 
+
+Providing defaults with a configuration file
+--------------------------------------------
+You can write a file ~/.eggmonkey in the following format:
+
+    [*]
+    python = /path/to/python
+    mkrelease = /path/to/mkrelease
+    manual_upload = true
+    domain = eea
+
+    [eea.indicators]
+    domain = eea pypi
+
+This is a ConfigParser file format where each section is a package name, with
+the exception of the star (*), which provides defaults for all packages. The
+following options can be configured: python, mkrelease, manual_upload and
+domain. The domain option can be a space separated list of package repository
+aliases where the package will be uploaded.
