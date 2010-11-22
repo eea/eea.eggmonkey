@@ -2,6 +2,9 @@ Changelog
 =========
 [Tiberiu Ichim - tiberiu.ichim@eaudeweb.ro]
 
+0.28-dev - (unreleased)
+-----------------------
+
 0.27 - (2010-11-22)
 -------------------
  * Feature: allow custom configuration in ~/.eggmonkey [tiberich]
