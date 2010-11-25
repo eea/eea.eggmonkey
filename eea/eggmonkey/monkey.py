@@ -527,13 +527,18 @@ def check_package_sanity(package_path, python, mkrelease, no_net=False):
     #install properly the collective.dist
     print_msg("Installing collective.dist in ", python)
     cmd = python + " setup.py easy_install -q -U collective.dist"
-    if not no_net:
-        try:
-            subprocess.check_call(cmd, cwd=package_path, shell=True)
-        except subprocess.CalledProcessError:
-            raise Error("Failed to install collective.dist in", python)
-    else:
-        print_msg("Fake operation: " + cmd)
+    try:
+        subprocess.check_call(cmd, cwd=package_path, shell=True)
+    except subprocess.CalledProcessError:
+        raise Error("Failed to install collective.dist in", python)
+
+    #if not no_net:
+        #try:
+            #subprocess.check_call(cmd, cwd=package_path, shell=True)
+        #except subprocess.CalledProcessError:
+            #raise Error("Failed to install collective.dist in", python)
+    #else:
+        #print_msg("Fake operation: " + cmd)
 
     #check if package metadata is properly filled
     try:

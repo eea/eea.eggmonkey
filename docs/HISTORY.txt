@@ -4,6 +4,7 @@ Changelog
 
 0.28-dev - (unreleased)
 -----------------------
+ * Bug fix: always install collective.dist, even when running in --no-network mode [tiberich]
 
 0.27 - (2010-11-22)
 -------------------
