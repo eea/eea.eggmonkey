@@ -526,7 +526,7 @@ def check_package_sanity(package_path, python, mkrelease, no_net=False):
     #Installing eggmonkey under buildout with a different python doesn't
     #install properly the collective.dist
     print_msg("Installing collective.dist in ", python)
-    cmd = python + " setup.py easy_install -U collective.dist"
+    cmd = python + " setup.py easy_install -q -U collective.dist"
     if not no_net:
         try:
             subprocess.check_call(cmd, cwd=package_path, shell=True)
