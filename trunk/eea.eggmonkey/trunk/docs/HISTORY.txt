@@ -2,6 +2,9 @@ Changelog
 =========
 [Tiberiu Ichim - tiberiu.ichim@eaudeweb.ro]
 
+0.29-dev - (unreleased)
+-----------------------
+
 0.28 - (2010-11-25)
 -------------------
  * Bug fix: always install collective.dist, even when running in --no-network mode [tiberich]
