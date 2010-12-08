@@ -28,8 +28,11 @@ EXTERNAL = Fore.BLUE + "RUNNING: " + Fore.RESET
 
 
 def print_msg(*msgs):
-    print EGGMONKEY + " ".join([str(m) for m in msgs])
-
+    if isinstance(msgs, (list, tuple)):
+        s = " ".join([str(m) for m in msgs])
+    else:
+        s = msgs
+    print EGGMONKEY + s
 
 class Error(Exception):
     """ EggMonkey runtime error """
@@ -126,7 +129,7 @@ class HistoryParser(object):
 
         header_flag = True
         for nr, line in enumerate(self.original):
-            if line and line[0].isdigit():
+            if line and (line[0].isdigit() or (line[0] == 'r' and line[1].isdigit())):
                 if (nr == len(self.original) - 1):  #we test if it's the last line
                     section_start = nr  
                 elif self.original[nr+1].strip()[0] in "-=~^":      #we test if next line is underlined
@@ -136,7 +139,8 @@ class HistoryParser(object):
                 #we travel through the file until we find a new section start
                 nl = nr + 1
                 while nl < len(self.original):
-                    if self.original[nl] and self.original[nl][0].isdigit():
+                    if self.original[nl] and (self.original[nl][0].isdigit() or 
+                            (self.original[nl][0] == 'r' and self.original[nl][1].isdigit())):
                         section_end = nl - 1
                         break
                     nl += 1
@@ -367,7 +371,7 @@ def release_package(package, sources, args, config):
             print EXTERNAL + cmd
             do_step(lambda:subprocess.check_call(cmd, cwd=package_path, shell=True), 4)
         else:
-            print_msg("Fake operation: ", cmd)
+            print EGGMONKEY + "Fake operation: " + cmd
 
         if tag_build:   #we write the initial version of the setup.cfg file
             print_msg("Changing setup.cfg back to the original")
@@ -385,8 +389,8 @@ def release_package(package, sources, args, config):
             f.write("\n".join(b))
             f.close()
 
+    cmd = ['svn', 'up', 'versions.cfg']
     if not no_net:
-        cmd = ['svn', 'up', 'versions.cfg']
         print EXTERNAL + " ".join(cmd)
         do_step(lambda:subprocess.check_call(cmd, cwd=os.getcwd()), 5)
     else:
@@ -561,7 +565,7 @@ def get_config(cfg, name, value, method="get", section="*"):
     m = getattr(cfg, method)
     try:
         v = m(section, name)
-    except ConfigParser.NoOptionError:
+    except (ConfigParser.NoOptionError, ConfigParser.NoSectionError):
         v = value
     except ValueError:
         print_msg("Got an error parsing config file, option: %s and section: %s" % (name, section))
@@ -625,6 +629,9 @@ def main(*a, **kw):
     if not packages and not args.autocheckout:
         cmd.print_help()
         sys.exit(1)
+
+    if args.no_network:
+        print_msg("Running in OFFLINE mode")
 
     try:
         if packages and args.autocheckout:

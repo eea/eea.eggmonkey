@@ -4,6 +4,9 @@ Changelog
 
 0.29-dev - (unreleased)
 -----------------------
+ * Bug fix: fixed a bug when processing personal configuration file with no entries for current package [tiberich]
+ * Bug fix: fixed printing messages when running in offline mode [tiberich]
+ * Feature: allow processing of history files that have revision numbers of versions for releases [tiberich]
 
 0.28 - (2010-11-25)
 -------------------
