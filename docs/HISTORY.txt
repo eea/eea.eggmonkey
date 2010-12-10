@@ -2,8 +2,8 @@ Changelog
 =========
 [Tiberiu Ichim - tiberiu.ichim@eaudeweb.ro]
 
-0.29-dev - (unreleased)
------------------------
+0.29 - (2010-12-10)
+-------------------
  * Bug fix: fixed a bug when processing personal configuration file with no entries for current package [tiberich]
  * Bug fix: fixed printing messages when running in offline mode [tiberich]
  * Feature: allow processing of history files that have revision numbers of versions for releases [tiberich]
