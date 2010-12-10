@@ -366,7 +366,7 @@ def release_package(package, sources, args, config):
         print_msg("Fake operation: ", " ".join(cmd))
 
     if manual_upload:
-        cmd = python + ' setup.py sdist --formats zip upload -r ' + domain[0]
+        cmd = python + ' setup.py -q sdist --formats zip upload -r ' + domain[0]
         if not no_net:
             print EXTERNAL + cmd
             do_step(lambda:subprocess.check_call(cmd, cwd=package_path, shell=True), 4)
