@@ -2,6 +2,9 @@ Changelog
 =========
 [Tiberiu Ichim - tiberiu.ichim@eaudeweb.ro]
 
+0.30-dev - (unreleased)
+-----------------------
+
 0.29 - (2010-12-10)
 -------------------
  * Bug fix: fixed a bug when processing personal configuration file with no entries for current package [tiberich]
