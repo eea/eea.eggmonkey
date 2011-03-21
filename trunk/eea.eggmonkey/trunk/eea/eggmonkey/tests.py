@@ -1,6 +1,6 @@
 import unittest
 from eea.eggmonkey.monkey import _increment_version, validate_version, HistoryParser
-import pprint
+#import pprint
 
 
 H1 = """Changelog

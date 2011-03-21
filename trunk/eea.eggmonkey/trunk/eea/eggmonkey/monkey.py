@@ -1,5 +1,5 @@
-from StringIO import StringIO
-from colorama import Fore, Back, Style, init
+#from StringIO import StringIO
+from colorama import Fore, init # Back, Style
 import ConfigParser
 import argparse
 import cPickle
@@ -53,7 +53,7 @@ def get_buildout():
 
 
 def find_file(path, name):
-    for root, dirs, names in os.walk(path):
+    for root, _dirs, names in os.walk(path):
         if name in names:
             return os.path.join(root, name)
 
@@ -220,7 +220,7 @@ class FileHistoryParser(HistoryParser):
         f.write("\n".join([l for l in self.header if l.strip()]))
         f.write("\n\n")
         for section in self.entries:
-            f.write("\n".join([l for l in section if l.strip()]))
+            f.write("\n".join([line for line in section if line.strip()]))
             f.write("\n\n")
         f.close()
 
@@ -427,7 +427,7 @@ def which(program):
     def is_exe(fpath):
         return os.path.exists(fpath) and os.access(fpath, os.X_OK)
 
-    fpath, fname = os.path.split(program)
+    fpath, _fname = os.path.split(program)
     if fpath:
         if is_exe(program):
             return program
@@ -460,8 +460,8 @@ def check_global_sanity(args, config):
         #we need to redirect stderr to a file, I see no cleaner way to achieve this
         if (manual_upload != None) and manual_upload:
             err = open('_test_setuptools', 'wr+')
-            cmd = [python, '-m', 'setuptools']
-            exit_code = subprocess.call(cmd, stderr=err, stdout=err)
+            #cmd = [python, '-m', 'setuptools']
+            #exit_code = subprocess.call(cmd, stderr=err, stdout=err)
             err.seek(0)
             output = err.read()
 
