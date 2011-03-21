@@ -12,8 +12,8 @@ def learn(buildout):
     sources = mrdeveloper.get_sources()
     autocheckout = mrdeveloper.get_auto_checkout()
 
-    dir = buildout['buildout']['directory']
-    out = open(os.path.join(dir, '_eggmonkey.cache'), 'w')
+    directory = buildout['buildout']['directory']
+    out = open(os.path.join(directory, '_eggmonkey.cache'), 'w')
     cPickle.dump([sources, autocheckout], out)
     out.close()
 
