@@ -45,9 +45,9 @@ global-exclude *.un~
 
 
 def get_buildout():
-    cwd = os.getcwd()
+    cwd        = os.getcwd()
     cache_file = open(os.path.join(cwd, '_eggmonkey.cache'), 'r')
-    buildout = cPickle.load(cache_file)
+    buildout   = cPickle.load(cache_file)
     cache_file.close()
     return buildout
 
@@ -66,10 +66,10 @@ def get_digits(s):
 
 
 def _increment_version(version):
-    devel = version.endswith('dev') or version.endswith('svn')
-    ver = version.split('-')[0].split('.')
-    ver = map(get_digits, ver)
-    minor = int(ver[-1]) + int(not devel)
+    devel  = version.endswith('dev') or version.endswith('svn')
+    ver    = version.split('-')[0].split('.')
+    ver    = map(get_digits, ver)
+    minor  = int(ver[-1]) + int(not devel)
     newver = ".".join(ver[:-1]) + ".%s%s" % (minor, (not devel and "-dev" or ""))
     return newver
 
@@ -104,7 +104,7 @@ def get_version(path):
     """Retrieves the version for a package
     """
     v_path = find_file(path, "version.txt")
-    f = open(v_path, 'r')
+    f      = open(v_path, 'r')
     version = f.read().strip()
     try:
         validate_version(version)
@@ -121,13 +121,13 @@ class HistoryParser(object):
     entries = None
 
     def __init__(self, original):
-        self.header = []
-        self.entries = []
+        self.header   = []
+        self.entries  = []
         self.original = original.splitlines()
         section_start = None
-        section_end = None
+        section_end   = None
 
-        header_flag = True
+        header_flag   = True
         for nr, line in enumerate(self.original):
             if line and (line[0].isdigit() or (line[0] == 'r' and line[1].isdigit())):
                 if (nr == len(self.original) - 1):  #we test if it's the last line
@@ -161,21 +161,21 @@ class HistoryParser(object):
 
     def _create_released_section(self):
         section = self.entries[0]
-        header = section[0]
+        header  = section[0]
         version = header.split(" ")[0]
         try:
             validate_version(version)
         except ValueError:
             raise Error("Got invalid version " + version)
 
-        newver = _increment_version(version)
-        today = str(datetime.datetime.now().date())
+        newver     = _increment_version(version)
+        today      = str(datetime.datetime.now().date())
         section[0] = u"%s - (%s)" % (newver, today)
         section[1] = u"-" * len(section[0])
 
     def _create_dev_section(self):
         section = self.entries[0]
-        header = section[0]
+        header  = section[0]
         version = header.split(" ")[0]
         try:
             validate_version(version)
@@ -183,7 +183,7 @@ class HistoryParser(object):
             raise Error("Got invalid version " + version)
 
         newver = _increment_version(version)
-        line = u"%s - (unreleased)" % (newver)
+        line   = u"%s - (unreleased)" % (newver)
 
         self.entries.insert(0, [
                 line,
@@ -193,7 +193,7 @@ class HistoryParser(object):
     def get_current_version(self):
         """Return the last version"""
         section = self.entries[0]
-        header = section[0]
+        header  = section[0]
         version = header.split(" ")[0].strip()
         try:
             validate_version(version)
@@ -207,10 +207,10 @@ class FileHistoryParser(HistoryParser):
     """A history parser that also does file operations"""
 
     def __init__(self, path):
-        h_path = find_file(path, "HISTORY.txt")
+        h_path      = find_file(path, "HISTORY.txt")
         self.h_path = h_path
-        f = open(h_path, 'r')
-        content = f.read()
+        f           = open(h_path, 'r')
+        content     = f.read()
         HistoryParser.__init__(self, content)
         f.close()
 
@@ -226,9 +226,9 @@ class FileHistoryParser(HistoryParser):
 
     def bump_version(self):
         section = self.entries[0]
-        header = section[0]
+        header  = section[0]
 
-        is_dev = u'unreleased' in header.lower()
+        is_dev  = u'unreleased' in header.lower()
 
         if is_dev:
             self._create_released_section()
@@ -305,6 +305,7 @@ def do_step(func, step, ignore_error=False):
     except Exception, e:
         if not ignore_error:
             print_msg("Got an error on step %s, but we continue: <%s>" % (step, e))
+            print INSTRUCTIONS
             return
             
 
