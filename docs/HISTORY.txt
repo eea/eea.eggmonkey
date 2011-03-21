@@ -5,6 +5,7 @@ Changelog
 0.30-dev - (unreleased)
 -----------------------
  * Change: use the --quiet flag when running setup sdist on manual-upload operations [tiberich]
+ * Bug fix: print steps and instructions when exiting because of error [tiberich]
 
 0.29 - (2010-12-10)
 -------------------
