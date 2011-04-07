@@ -460,8 +460,8 @@ def check_global_sanity(args, config):
         #we need to redirect stderr to a file, I see no cleaner way to achieve this
         if (manual_upload != None) and manual_upload:
             err = open('_test_setuptools', 'wr+')
-            #cmd = [python, '-m', 'setuptools']
-            #exit_code = subprocess.call(cmd, stderr=err, stdout=err)
+            cmd = [python, '-m', 'setuptools']
+            exit_code = subprocess.call(cmd, stderr=err, stdout=err)
             err.seek(0)
             output = err.read()
 
