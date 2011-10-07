@@ -657,3 +657,48 @@ def main(*a, **kw):
         sys.exit(1)
 
     sys.exit(0)
+
+
+def print_unreleased_packages():
+    """Given a directory with packages (such as the src/ created by mr.developer,
+    traverses it and print packages that have changes in their history files
+    that haven't been released as eggs
+    """
+
+    unreleased = []
+
+    args = sys.argv
+    if len(args) == 1:
+        print "You need to provide a path where to look for packages"
+        sys.exit(1)
+
+    folder = args[1]
+    for name in os.listdir(folder):
+        dirname = os.path.join(folder, name)
+        if not os.path.isdir(dirname):
+            continue
+
+        print "Looking in ", dirname
+        try:
+            history = find_file(dirname, "HISTORY.txt")
+        except ValueError:
+            print "Did not find a history file, skipping"
+            continue
+        lines = open(history).read()
+        parser = HistoryParser(lines)
+        try:
+            if len(parser.entries[0]) > 2:
+                if parser.entries[0][2].strip() != "*":    #might be just a placeholder star
+                    unreleased.append(name)
+        except:
+            print "Got an error while processing history file, skipping"
+            continue
+
+    if not unreleased:
+        print "No unreleased packages have been found"
+    else:
+        print "The following packages have unreleased modifications:",
+        print ", ".join(unreleased)
+
+    sys.exit(0)
+

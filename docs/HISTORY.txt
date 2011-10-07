@@ -4,6 +4,7 @@ Changelog
 
 0.30-dev - (unreleased)
 -----------------------
+ * Feature: added print_unreleased_packages console script that will print packages where the history is dirty [tiberich]
  * Cleanup: of pyflakes warnings [ichimdav #4141]
  * Cleanup: of pylint violations [ichimdav #4140]
  * Change: use the --quiet flag when running setup sdist on manual-upload operations [tiberich]

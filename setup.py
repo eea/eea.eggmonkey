@@ -41,6 +41,7 @@ setup(name=name,
         entry_points={
             "console_scripts":[
                 "monkey = eea.eggmonkey.monkey:main" ,
+                "print_unreleased_packages = eea.eggmonkey.monkey:print_unreleased_packages" ,
                 ],
             "zc.buildout.unloadextension":[
                 "monkey = eea.eggmonkey.buildout:learn",
