@@ -2,6 +2,9 @@ Changelog
 =========
 [Tiberiu Ichim - tiberiu.ichim@eaudeweb.ro]
 
+0.31-dev - (unreleased)
+-----------------------
+
 0.30 - (2011-10-07)
 -------------------
  * Feature: added print_unreleased_packages console script that will print packages where the history is dirty [tiberich]
