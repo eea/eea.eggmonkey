@@ -1,4 +1,5 @@
 #from StringIO import StringIO
+import urllib2
 from colorama import Fore, init # Back, Style
 import ConfigParser
 import argparse
@@ -77,7 +78,7 @@ def _increment_version(version):
 def bump_version(path):
     """Writes new versions into version file
 
-    It will always go from dev to final and from released to 
+    It will always go from dev to final and from released to
     increased dev number. Example:
 
     Called first time:
@@ -95,7 +96,7 @@ def bump_version(path):
         raise Error("Got invalid version " + version)
 
     newver = _increment_version(version)
-    f.truncate(0); f.seek(0) 
+    f.truncate(0); f.seek(0)
     f.write(newver)
     f.close()
 
@@ -131,7 +132,7 @@ class HistoryParser(object):
         for nr, line in enumerate(self.original):
             if line and (line[0].isdigit() or (line[0] == 'r' and line[1].isdigit())):
                 if (nr == len(self.original) - 1):  #we test if it's the last line
-                    section_start = nr  
+                    section_start = nr
                 elif self.original[nr+1].strip()[0] in "-=~^":      #we test if next line is underlined
                     section_start = nr
                 header_flag = False
@@ -139,7 +140,7 @@ class HistoryParser(object):
                 #we travel through the file until we find a new section start
                 nl = nr + 1
                 while nl < len(self.original):
-                    if self.original[nl] and (self.original[nl][0].isdigit() or 
+                    if self.original[nl] and (self.original[nl][0].isdigit() or
                             (self.original[nl][0] == 'r' and self.original[nl][1].isdigit())):
                         section_end = nl - 1
                         break
@@ -150,14 +151,14 @@ class HistoryParser(object):
 
             if section_start and section_end:   # a section is completed
                 self.entries.append(filter(lambda li:li.strip(), #we filter empty lines
-                                           self.original[section_start:section_end])) 
+                                           self.original[section_start:section_end]))
                 section_start = None
                 section_end = None
 
             if section_start and (not section_end) and (nr == len(self.original) - 1):  #end of file means end of section
                 section_end = len(self.original)
                 self.entries.append(filter(lambda li:li.strip(), #we filter empty lines
-                                           self.original[section_start:section_end])) 
+                                           self.original[section_start:section_end]))
 
     def _create_released_section(self):
         section = self.entries[0]
@@ -252,7 +253,7 @@ def validate_version(version):
 
     if version.endswith("."):
         raise ValueError
-    
+
     #all parts need to contain digits, only the last part can contain -dev
     parts = version.split('.')
     if not len(parts) > 1:
@@ -307,7 +308,7 @@ def do_step(func, step, ignore_error=False):
             print_msg("Got an error on step %s, but we continue: <%s>" % (step, e))
             print INSTRUCTIONS
             return
-            
+
 
 def release_package(package, sources, args, config):
     python = get_config(config, "python", args.python, section=package)
@@ -361,7 +362,7 @@ def release_package(package, sources, args, config):
     cmd = [mkrelease, "-q"] + domains    #, '-d', args.domain]
     if not no_net:
         print EXTERNAL + " ".join(cmd)
-        do_step(lambda:subprocess.check_call(cmd, cwd=package_path), 
+        do_step(lambda:subprocess.check_call(cmd, cwd=package_path),
                 3, ignore_error=manual_upload)
     else:
         print_msg("Fake operation: ", " ".join(cmd))
@@ -398,7 +399,7 @@ def release_package(package, sources, args, config):
         print_msg("Fake operation: ", " ".join(cmd))
 
     version = get_version(package_path)
-    do_step(lambda:change_version(path=os.path.join(os.getcwd(), 'versions.cfg'), 
+    do_step(lambda:change_version(path=os.path.join(os.getcwd(), 'versions.cfg'),
                    package=package, version=version), 6)
 
     cmd = ['svn', 'ci', 'versions.cfg', '-m', 'Updated version for %s to %s' % (package, version)]
@@ -502,7 +503,7 @@ def check_package_sanity(package_path, python, mkrelease, no_net=False):
         raise Error("Package is dirty. Quiting")
 
     #check if we have hardcoded version in setup.py
-    #this is a dumb but hopefully effective method: we look for a line 
+    #this is a dumb but hopefully effective method: we look for a line
     #starting with version= and fail if there's a number on it
     setup_py = find_file(package_path, 'setup.py')
     f = open(setup_py)
@@ -591,11 +592,11 @@ def main(*a, **kw):
 
     cmd = argparse.ArgumentParser(u"Eggmonkey: easy build and release of eggs\n")
 
-    cmd.add_argument('-n', "--no-network", 
+    cmd.add_argument('-n', "--no-network",
             action='store_const', const=True, default=False,
             help=u"Don't run network operations")
 
-    cmd.add_argument('-u', "--manual-upload", action='store_const', const=True, 
+    cmd.add_argument('-u', "--manual-upload", action='store_const', const=True,
                 default=get_config(config, "manual_upload", False, 'getboolean'),
                 help=u"Manually upload package to eggrepo. Runs an extra " +
                      u"upload step to ensure package is uploaded on eggrepo.")
@@ -603,21 +604,21 @@ def main(*a, **kw):
     cmd.add_argument('-a', "--autocheckout", action='store_const', const=True, default=False,
                      help=u"Process all eggs in autocheckout")
 
-    cmd.add_argument("packages", nargs="*", metavar="PACKAGE", 
-                help=u"The packages to release. Can be any of: [ %s ]" % 
+    cmd.add_argument("packages", nargs="*", metavar="PACKAGE",
+                help=u"The packages to release. Can be any of: [ %s ]" %
                      u" ".join(sorted(sources.keys())))
 
-    cmd.add_argument('-m', "--mkrelease", 
+    cmd.add_argument('-m', "--mkrelease",
                 default=os.path.expanduser(get_config(config, "mkrelease", "mkrelease")),
                 help=u"Path to mkrelease script. Defaults to 'mkrelease'")
 
-    cmd.add_argument('-p', "--python", 
+    cmd.add_argument('-p', "--python",
                      default=os.path.expanduser(get_config(config, "python", "python")),
                      help=u"Path to Python binary which will be used to generate and upload the egg. "
                           u"Only used when doing --manual-upload")
 
     cmd.add_argument('-d', "--domain", action="append", help=u"The repository aliases. Defaults to 'eea'. "
-                        "Specify multiple times to upload egg to multiple repositories.", 
+                        "Specify multiple times to upload egg to multiple repositories.",
                         default=get_config(config, "domain", "").split() or [],
                     )
 
@@ -701,4 +702,61 @@ def print_unreleased_packages():
         print ", ".join(unreleased)
 
     sys.exit(0)
+#
+# Check if EEA packages are released also on pypi and plone.org
+#
+PYPI_PACKAGE = 'http://pypi.python.org/pypi/%s'
+PYPI_RELEASE = 'http://pypi.python.org/pypi/%s/%s'
+PLONE_PACKAGE = 'http://plone.org/products/%s'
+PLONE_RELEASE = 'http://plone.org/products/%s/releases/%s'
 
+def check_package_on_server(package, server):
+    """ Check if package is released on given server
+    """
+    try:
+        conn = urllib2.urlopen(server % package)
+    except urllib2.HTTPError:
+        return False
+    else:
+        conn.close()
+        return True
+
+def check_release_on_server(package, version, server):
+    """ Check if package version is available on given server
+    """
+    try:
+        conn = urllib2.urlopen(server % (package, version))
+    except urllib2.HTTPError:
+        return False
+    else:
+        conn.close()
+        return True
+
+def print_pypi_plone_unreleased_eggs():
+    """ Print packages that aren't released on pypi or plone.org
+    """
+    versions = {}
+    vfile = 'versions.cfg'
+    args = sys.argv
+    if len(args) > 1:
+        vfile = args[1]
+
+    with open(vfile, 'r') as vfile:
+        for line in vfile:
+            line = line.strip().split('=')
+            if len(line) == 2:
+                package, version = [x.strip() for x in line]
+                versions[package] = version
+
+    for package, version in versions.items():
+        if 'eea' not in package.lower():
+            continue
+
+        if check_package_on_server(package, PLONE_PACKAGE):
+            if not check_release_on_server(package, version, PLONE_RELEASE):
+                print "%30s:  %10s  not on plone.org" % (package, version)
+
+        if check_package_on_server(package, PYPI_PACKAGE):
+            if not check_release_on_server(package, version, PYPI_RELEASE):
+                print "%30s:  %10s  not on pypi.python.org" % (
+                    package, version)
