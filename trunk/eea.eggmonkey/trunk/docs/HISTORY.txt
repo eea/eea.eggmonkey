@@ -2,6 +2,9 @@ Changelog
 =========
 [Tiberiu Ichim - tiberiu.ichim@eaudeweb.ro]
 
+0.32-dev - (unreleased)
+-----------------------
+
 0.31 - (2012-01-04)
 -------------------
  * Feature: Added print_pypi_plone_unreleased_eggs console script that will
