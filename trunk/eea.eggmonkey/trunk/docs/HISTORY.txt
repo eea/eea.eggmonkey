@@ -2,8 +2,8 @@ Changelog
 =========
 [Tiberiu Ichim - tiberiu.ichim@eaudeweb.ro]
 
-0.31-dev - (unreleased)
------------------------
+0.31 - (2012-01-04)
+-------------------
  * Feature: Added print_pypi_plone_unreleased_eggs console script that will
    print packages that are not released also on pypi, plone.org
    [voineali]
