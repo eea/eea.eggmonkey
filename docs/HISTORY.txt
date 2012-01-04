@@ -4,6 +4,9 @@ Changelog
 
 0.31-dev - (unreleased)
 -----------------------
+ * Feature: Added print_pypi_plone_unreleased_eggs console script that will
+   print packages that are not released also on pypi, plone.org
+   [voineali]
 
 0.30 - (2011-10-07)
 -------------------
