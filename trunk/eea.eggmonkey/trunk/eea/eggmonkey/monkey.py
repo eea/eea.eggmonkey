@@ -748,15 +748,21 @@ def print_pypi_plone_unreleased_eggs():
                 package, version = [x.strip() for x in line]
                 versions[package] = version
 
+    errors = False
     for package, version in versions.items():
         if 'eea' not in package.lower():
             continue
 
         if check_package_on_server(package, PLONE_PACKAGE):
             if not check_release_on_server(package, version, PLONE_RELEASE):
+                errors = True
                 print "%30s:  %10s  not on plone.org" % (package, version)
 
         if check_package_on_server(package, PYPI_PACKAGE):
             if not check_release_on_server(package, version, PYPI_RELEASE):
+                errors = True
                 print "%30s:  %10s  not on pypi.python.org" % (
                     package, version)
+
+    if errors:
+        sys.exit(1)
