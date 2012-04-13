@@ -122,3 +122,7 @@ the exception of the star (*), which provides defaults for all packages. The
 following options can be configured: python, mkrelease, manual_upload and
 domain. The domain option can be a space separated list of package repository
 aliases where the package will be uploaded.
+
+System requirements
+===================
+Needs libsvn-dev and libaprutil1-dev (on Debian systems)
