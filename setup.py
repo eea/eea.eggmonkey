@@ -37,12 +37,14 @@ setup(name=name,
             'argparse', #TODO: test python version, it comes included with Python 2.7
             'colorama',
             'collective.dist',
+            'jarn.mkrelease',
 
             #anyvc and its required support for repositories
             'anyvc',
             'mercurial',
             'subvertpy',
             'dulwich',
+
             ],
         entry_points={
             "console_scripts":[

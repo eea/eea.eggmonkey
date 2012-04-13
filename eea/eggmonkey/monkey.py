@@ -1,5 +1,4 @@
 #from StringIO import StringIO
-import urllib2
 from colorama import Fore, init # Back, Style
 import ConfigParser
 import argparse
@@ -8,6 +7,8 @@ import datetime
 import os
 import subprocess
 import sys
+import urllib2
+import anyvc import workdir
 
 
 INSTRUCTIONS = """
@@ -334,6 +335,7 @@ def release_package(package, sources, args, config):
         f.close()
         cmd = ['svn', 'add', 'MANIFEST.in']
         subprocess.check_call(cmd, cwd=package_path)
+        #anyvcs
 
     if manual_upload:
         #when doing manual upload, if there's a setup.cfg file, we might get strange version
@@ -391,6 +393,7 @@ def release_package(package, sources, args, config):
             f.write("\n".join(b))
             f.close()
 
+    #anyvcs
     cmd = ['svn', 'up', 'versions.cfg']
     if not no_net:
         print EXTERNAL + " ".join(cmd)
@@ -402,6 +405,7 @@ def release_package(package, sources, args, config):
     do_step(lambda:change_version(path=os.path.join(os.getcwd(), 'versions.cfg'),
                    package=package, version=version), 6)
 
+    #anyvcs
     cmd = ['svn', 'ci', 'versions.cfg', '-m', 'Updated version for %s to %s' % (package, version)]
     if not no_net:
         print EXTERNAL + " ".join(cmd)
@@ -413,6 +417,7 @@ def release_package(package, sources, args, config):
     do_step(lambda:bump_history(package_path), 9)
 
     version = get_version(package_path)
+    #anyvcs
     cmd = ['svn', 'ci', '-m', 'Change version for %s to %s' % (package, version)]
     if not no_net:
         print EXTERNAL + " ".join(cmd)
@@ -496,6 +501,7 @@ def check_global_sanity(args, config):
 def check_package_sanity(package_path, python, mkrelease, no_net=False):
 
     try:
+        #anyvcs
         cmd = ["svn", "up"]
         if not no_net:
             subprocess.check_call(cmd, cwd=package_path)
@@ -702,6 +708,8 @@ def print_unreleased_packages():
         print ", ".join(unreleased)
 
     sys.exit(0)
+
+
 #
 # Check if EEA packages are released also on pypi and plone.org
 #
@@ -721,6 +729,7 @@ def check_package_on_server(package, server):
         conn.close()
         return True
 
+
 def check_release_on_server(package, version, server):
     """ Check if package version is available on given server
     """
@@ -731,6 +740,7 @@ def check_release_on_server(package, version, server):
     else:
         conn.close()
         return True
+
 
 def print_pypi_plone_unreleased_eggs():
     """ Print packages that aren't released on pypi or plone.org
