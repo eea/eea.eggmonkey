@@ -1,4 +1,6 @@
 #from StringIO import StringIO
+from anyvc import workdir
+from py.path import local
 from colorama import Fore, init # Back, Style
 import ConfigParser
 import argparse
@@ -8,7 +10,6 @@ import os
 import subprocess
 import sys
 import urllib2
-import anyvc import workdir
 
 
 INSTRUCTIONS = """
@@ -321,12 +322,15 @@ def release_package(package, sources, args, config):
 
     package_path = sources[package]['path']
     check_package_sanity(package_path, python, mkrelease, no_net)
+    return
 
     do_step(lambda:bump_version(package_path), 1)
     do_step(lambda:bump_history(package_path), 2)
 
     tag_build = None
     tag_svn_revision = None
+
+    wd = workdir.open(package_path)
 
     manifest_path = os.path.join(package_path, 'MANIFEST.in')
     if not os.path.exists(manifest_path):
@@ -335,7 +339,9 @@ def release_package(package, sources, args, config):
         f.close()
         cmd = ['svn', 'add', 'MANIFEST.in']
         subprocess.check_call(cmd, cwd=package_path)
+        wd.add(paths=manifest_path)
         #anyvcs
+
 
     if manual_upload:
         #when doing manual upload, if there's a setup.cfg file, we might get strange version
@@ -398,6 +404,7 @@ def release_package(package, sources, args, config):
     if not no_net:
         print EXTERNAL + " ".join(cmd)
         do_step(lambda:subprocess.check_call(cmd, cwd=os.getcwd()), 5)
+        wd.update('versions.cfg')
     else:
         print_msg("Fake operation: ", " ".join(cmd))
 
@@ -407,6 +414,7 @@ def release_package(package, sources, args, config):
 
     #anyvcs
     cmd = ['svn', 'ci', 'versions.cfg', '-m', 'Updated version for %s to %s' % (package, version)]
+    wd.commit(paths=["versions.cfg"], message='Updated version for %s to %s' % (package, version))
     if not no_net:
         print EXTERNAL + " ".join(cmd)
         do_step(lambda:subprocess.check_call(cmd, cwd=os.getcwd()), 7)
@@ -419,6 +427,7 @@ def release_package(package, sources, args, config):
     version = get_version(package_path)
     #anyvcs
     cmd = ['svn', 'ci', '-m', 'Change version for %s to %s' % (package, version)]
+    wd.commit(message='Updated version for %s to %s' % (package, version))
     if not no_net:
         print EXTERNAL + " ".join(cmd)
         do_step(lambda:subprocess.check_call(cmd, cwd=package_path), 10)
@@ -499,7 +508,11 @@ def check_global_sanity(args, config):
 
 
 def check_package_sanity(package_path, python, mkrelease, no_net=False):
+    wd = workdir.open(package_path)
+    wd.update()
 
+    return
+    
     try:
         #anyvcs
         cmd = ["svn", "up"]
@@ -582,6 +595,7 @@ def get_config(cfg, name, value, method="get", section="*"):
 
 
 def main(*a, **kw):
+    raise NotImplementedError("This package is under development; use released egg")
     try:
         sources, autocheckout = get_buildout()
     except Exception, e:
