@@ -125,4 +125,5 @@ aliases where the package will be uploaded.
 
 System requirements
 ===================
-Needs libsvn-dev and libaprutil1-dev (on Debian systems)
+Needs libsvn-dev and libaprutil1-dev (on Debian systems) and apr-util-devel,
+subversion-devel on Redhat systems
