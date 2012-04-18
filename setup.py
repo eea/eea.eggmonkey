@@ -40,10 +40,10 @@ setup(name=name,
             'jarn.mkrelease',
 
             #anyvc and its required support for repositories
-            'anyvc',
-            'mercurial',
-            'subvertpy',
-            'dulwich',
+            #'anyvc',
+            #'mercurial',
+            #'subvertpy',
+            #'dulwich',
 
             ],
         entry_points={

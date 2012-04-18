@@ -1,7 +1,7 @@
 #from StringIO import StringIO
-from anyvc import workdir, repository
-from py.path import local
+
 from colorama import Fore, init # Back, Style
+from itertools import chain
 import ConfigParser
 import argparse
 import cPickle
@@ -137,10 +137,12 @@ class HistoryParser(object):
 
         header_flag   = True
         for nr, line in enumerate(self.original):
-            if line and (line[0].isdigit() or (line[0] == 'r' and line[1].isdigit())):
-                if (nr == len(self.original) - 1):  #we test if it's the last line
+            if line and (line[0].isdigit() or (line[0] == 'r' and 
+                                                    line[1].isdigit())):
+                if (nr == len(self.original) - 1):  #we test if is last line
                     section_start = nr
-                elif self.original[nr+1].strip()[0] in "-=~^":      #we test if next line is underlined
+                #we test if next line is underlined
+                elif self.original[nr+1].strip()[0] in "-=~^":      
                     section_start = nr
                 header_flag = False
 
@@ -148,24 +150,32 @@ class HistoryParser(object):
                 nl = nr + 1
                 while nl < len(self.original):
                     if self.original[nl] and (self.original[nl][0].isdigit() or
-                            (self.original[nl][0] == 'r' and self.original[nl][1].isdigit())):
+                            (self.original[nl][0] == 'r' and 
+                                    self.original[nl][1].isdigit())):
                         section_end = nl - 1
                         break
                     nl += 1
 
-            if not section_start and header_flag:   #if there's no section, this means we have file header
+            if not section_start and header_flag:   
+                #if there's no section, this means we have file header
                 self.header.append(line)
 
             if section_start and section_end:   # a section is completed
-                self.entries.append(filter(lambda li:li.strip(), #we filter empty lines
-                                           self.original[section_start:section_end]))
+                self.entries.append(filter(
+                                       #we filter empty lines
+                                       lambda li:li.strip(), 
+                                       self.original[section_start:section_end]))
                 section_start = None
                 section_end = None
 
-            if section_start and (not section_end) and (nr == len(self.original) - 1):  #end of file means end of section
+            if section_start and (not section_end) and \
+                    (nr == len(self.original) - 1):  
+                    #end of file means end of section
                 section_end = len(self.original)
-                self.entries.append(filter(lambda li:li.strip(), #we filter empty lines
-                                           self.original[section_start:section_end]))
+                self.entries.append(filter(
+                                        #we filter empty lines
+                                        lambda li:li.strip(), 
+                                   self.original[section_start:section_end]))
 
     def _create_released_section(self):
         section = self.entries[0]
@@ -317,137 +327,225 @@ def do_step(func, step, ignore_error=False):
             return
 
 
-def release_package(package, sources, args, config):
-    python = get_config(config, "python", args.python, section=package)
-    domain = get_config(config, "domain", args.domain, section=package)
-    manual_upload = get_config(config, "manual_upload", args.manual_upload, section=package)
-    mkrelease = get_config(config, "mkrelease", args.mkrelease, section=package)
+class GenericSCM(object):
+    """Base SCM class
+    """
 
-    no_net = args.no_network
+    def __init__(self, path, no_net):
+        self.path = path
+        self.no_net = no_net
 
-    package_path = sources[package]['path']
-    local_package_path = local(package_path)
-    check_package_sanity(package_path, python, mkrelease, no_net)
-
-    wd = workdir.open(package_path)
-    repo = repository.open(local_package_path, ['subversion'])
-    import pdb; pdb.set_trace()
-
-    do_step(lambda:bump_version(package_path), 1)
-    do_step(lambda:bump_history(package_path), 2)
-
-    tag_build = None
-    tag_svn_revision = None
+    def execute(self, *args, **kwds):
+        print EXTERNAL + " ".join(list(chain(args)))
+        if not self.no_net:
+            subprocess.check_call(*args, cwd=self.path, **kwds)
 
 
-    manifest_path = os.path.join(package_path, 'MANIFEST.in')
-    if not os.path.exists(manifest_path):
-        f = open(manifest_path, 'w+')
-        f.write(MANIFEST)
-        f.close()
-        cmd = ['svn', 'add', 'MANIFEST.in']
-        #anyvc
-        wd.add(paths=manifest_path)
-        wd.commit(message="Added MANIFEST.in file")
-        repo.push()
-        #subprocess.check_call(cmd, cwd=package_path)
+class SubversionSCM(GenericSCM):
+    """Implementation of subversion scm
+    """
+
+    def add_and_commit(self, paths, message=None):
+        self.add(paths)
+        message = message or "Added %s" % " ".join(paths)
+        self.commit(paths, message)
+
+    def add(self, paths):
+        paths = " ".join(paths)
+        self.execute(["svn", "add", paths])
+
+    def update(self, paths):
+        paths = " ".join(paths)
+        self.execute(["svn", "update"] + paths)
+
+    def commit(self, paths, message):
+        paths = " ".join(paths)
+        self.execute(['svn', 'commmit'] + paths + ['-m', message])
 
 
-    if manual_upload:
-        #when doing manual upload, if there's a setup.cfg file, we might get strange version
-        #so we change it here and again after the package release
-        if 'setup.cfg' in os.listdir(package_path):
-            print_msg("Changing setup.cfg to fit manual upload")
-            f = open(os.path.join(package_path, 'setup.cfg'), 'rw+')
-            b = []
-            for l in f.readlines():
-                l = l.strip()
-                if l.startswith("tag_build"):
-                    tag_build = l
-                    b.append("tag_build = ")
-                elif l.startswith("tag_svn_revision"):
-                    tag_svn_revision = l
-                    b.append("tag_svn_revision = false")
-                else:
-                    b.append(l)
-            f.seek(0); f.truncate(0)
-            f.write("\n".join(b))
+class GitSCM(GenericSCM):
+    """Implementation of git scm
+    """
+
+    def add_and_commit(self, paths, message=None):
+        self.add(paths)
+        message = message or "Added %s" % " ".join(paths)
+        self.commit(paths, message)
+
+    def add(self, paths):
+        paths = " ".join(paths)
+        self.execute(["git", "add", paths])
+
+    def commit(self, paths, message):
+        paths = " ".join(paths)
+        self.execute(['git', 'commmit'] + paths + ['-m', message])
+        self.execute(['git', 'push'])
+
+    def update(self, paths):
+        paths = " ".join(paths)
+        self.execute(["git", "pull", "-u"])
+
+
+class MercurialSCM(GenericSCM):
+    """Implementation of git scm
+    """
+
+    def add_and_commit(self, paths, message=None):
+        self.add(paths)
+        message = message or "Added %s" % " ".join(paths)
+        self.commit(paths, message)
+
+    def add(self, paths):
+        paths = " ".join(paths)
+        self.execute(["hg", "add", paths])
+
+    def commit(self, paths, message):
+        paths = " ".join(paths)
+        self.execute(['hg', 'commmit'] + paths + ['-m', message])
+        self.execute(['hg', 'push'])
+
+    def update(self, paths):
+        paths = " ".join(paths)
+        self.execute(["hg", "pull", "-u"])
+
+
+class Monkey():
+    """A package release monkey"""
+
+    def __init__(self, package, sources, args, config):
+        self.package = package
+
+        self.python = get_config(config, "python", args.python, section=package)
+        self.domain = get_config(config, "domain", args.domain, section=package)
+        self.manual_upload = get_config(config, "manual_upload", 
+                                        args.manual_upload, section=package)
+        self.mkrelease = get_config(config, "mkrelease", args.mkrelease, 
+                                        section=package)
+
+        self.no_net = args.no_network
+
+        self.package_path = package_path = sources[package]['path']
+        self.pkg_scm = self.get_scm(package_path, self.no_net)
+
+        self.build_path = os.getcwd()
+        self.build_scm = self.get_scm(self.build_path, self.no_net)
+
+    def get_scm(self, path, no_net):
+        files = os.listdir(path)
+        scms = {
+                'svn':('.svn', SubversionSCM),
+                'git':('.git', GitSCM),
+                'hg':('.hg', MercurialSCM)
+                }
+
+        _scm = None
+        for k, v in scms.items():
+            marker, factory = v
+            if marker in files:
+                _scm = factory(path, no_net)
+                break
+        
+        if _scm == None:
+            raise ValueError ("Could not determine scm type")
+
+        return _scm
+
+    def release_package(self):
+        check_package_sanity(self.package_path, self.python, self.mkrelease, 
+                             self.no_net)
+
+        do_step(lambda:bump_version(self.package_path), 1)
+        do_step(lambda:bump_history(self.package_path), 2)
+
+        tag_build = None
+        tag_svn_revision = None
+
+        manifest_path = os.path.join(self.package_path, 'MANIFEST.in')
+        if not os.path.exists(manifest_path):
+            f = open(manifest_path, 'w+')
+            f.write(MANIFEST)
             f.close()
+            self.pkg_scm.add_and_commit(self.package_path, ['MANIFEST.in'])
 
-    domains = []
-    for d in domain:
-        domains.extend(['-d', d])
-    cmd = [mkrelease, "-q"] + domains    #, '-d', args.domain]
-    if not no_net:
-        print EXTERNAL + " ".join(cmd)
-        do_step(lambda:subprocess.check_call(cmd, cwd=package_path),
-                3, ignore_error=manual_upload)
-    else:
-        print_msg("Fake operation: ", " ".join(cmd))
+        if self.manual_upload:
+            # when doing manual upload, if there's a setup.cfg file, 
+            # we might get strange version so we change it here and 
+            # again after the package release
+            if 'setup.cfg' in os.listdir(self.package_path):
+                print_msg("Changing setup.cfg to fit manual upload")
+                f = open(os.path.join(self.package_path, 'setup.cfg'), 'rw+')
+                b = []
+                for l in f.readlines():
+                    l = l.strip()
+                    if l.startswith("tag_build"):
+                        tag_build = l
+                        b.append("tag_build = ")
+                    elif l.startswith("tag_svn_revision"):
+                        tag_svn_revision = l
+                        b.append("tag_svn_revision = false")
+                    else:
+                        b.append(l)
+                f.seek(0); f.truncate(0)
+                f.write("\n".join(b))
+                f.close()
 
-    if manual_upload:
-        cmd = python + ' setup.py -q sdist --formats zip upload -r ' + domain[0]
-        if not no_net:
-            print EXTERNAL + cmd
-            do_step(lambda:subprocess.check_call(cmd, cwd=package_path, shell=True), 4)
+        domains = []
+        for d in self.domain:
+            domains.extend(['-d', d])
+        cmd = [self.mkrelease, "-q"] + domains
+        if not self.no_net:
+            print EXTERNAL + " ".join(cmd)
+            do_step(lambda:subprocess.check_call(cmd, cwd=self.package_path),
+                    3, ignore_error=self.manual_upload)
         else:
-            print EGGMONKEY + "Fake operation: " + cmd
+            print_msg("Fake operation: ", " ".join(cmd))
 
-        if tag_build:   #we write the initial version of the setup.cfg file
-            print_msg("Changing setup.cfg back to the original")
-            f = open(os.path.join(package_path, 'setup.cfg'), 'rw+')
-            b = []
-            for l in f.readlines():
-                l = l.strip()
-                if l.startswith("tag_build"):
-                    b.append(tag_build)
-                elif l.startswith("tag_svn_revision"):
-                    b.append(tag_svn_revision)
+        if self.manual_upload:
+            for domain in domains:
+                cmd = self.python + \
+                        ' setup.py -q sdist --formats zip upload -r ' + domain
+                if not self.no_net:
+                    print EXTERNAL + cmd
+                    do_step(lambda:subprocess.check_call(cmd, 
+                                cwd=self.package_path, shell=True), 4)
                 else:
-                    b.append(l)
-            f.seek(0); f.truncate(0)
-            f.write("\n".join(b))
-            f.close()
+                    print EGGMONKEY + "Fake operation: " + cmd
 
-    #anyvc
-    cmd = ['svn', 'up', 'versions.cfg']
-    if not no_net:
-        print EXTERNAL + " ".join(cmd)
-        #do_step(lambda:subprocess.check_call(cmd, cwd=os.getcwd()), 5)
-        do_step(lambda:wd.update('versions.cfg'), 5)
-    else:
-        print_msg("Fake operation: ", " ".join(cmd))
+            if tag_build:   #we write the initial version of the setup.cfg file
+                print_msg("Changing setup.cfg back to the original")
+                f = open(os.path.join(self.package_path, 'setup.cfg'), 'rw+')
+                b = []
+                for l in f.readlines():
+                    l = l.strip()
+                    if l.startswith("tag_build"):
+                        b.append(tag_build)
+                    elif l.startswith("tag_svn_revision"):
+                        b.append(tag_svn_revision)
+                    else:
+                        b.append(l)
+                f.seek(0); f.truncate(0)
+                f.write("\n".join(b))
+                f.close()
 
-    version = get_version(package_path)
-    do_step(lambda:change_version(path=os.path.join(os.getcwd(), 'versions.cfg'),
-                   package=package, version=version), 6)
+        do_step(lambda:self.build_scm.update(['versions.cfg']), 5)
 
-    #anyvc
-    cmd = ['svn', 'commmit', 'versions.cfg', '-m', 
-                'Updated version for %s to %s' % (package, version)]
-    if not no_net:
-        print EXTERNAL + " ".join(cmd)
-        do_step(lambda:wd.commit(paths=["versions.cfg"], 
-            message='Updated version for %s to %s' % (package, version)), 7)
-        #do_step(lambda:subprocess.check_call(cmd, cwd=os.getcwd()), 7)
-    else:
-        print_msg("Fake operation: ", " ".join(cmd))
+        version = get_version(self.package_path)
+        version_path = os.path.join(self.build_path, 'versions.cfg')
+        do_step(lambda:change_version(path=version_path,
+                               package=self.package, version=version), 6)
 
-    do_step(lambda:bump_version(package_path), 8)
-    do_step(lambda:bump_history(package_path), 9)
+        do_step(lambda:self.build_scm.commit(paths=["versions.cfg"], 
+            message='Updated version for %s to %s' % (self.package, version)), 7)
 
-    version = get_version(package_path)
-    #anyvc
-    cmd = ['svn', 'commmit', '-m', 'Change version for %s to %s' % (package, version)]
-    if not no_net:
-        print EXTERNAL + " ".join(cmd)
-        do_step(lambda:wd.commit(message='Updated version for %s to %s' % 
-                                         (package, version)), 10)
-        #do_step(lambda:subprocess.check_call(cmd, cwd=package_path), 10)
-    else:
-        print_msg("Fake operation: ", " ".join(cmd))
+        do_step(lambda:bump_version(self.package_path), 8)
+        do_step(lambda:bump_history(self.package_path), 9)
 
-    return
+        version = get_version(self.package_path)
+        do_step(lambda:self.pkg_scm.commit(
+                message='Updated version for %s to %s' % (self.package, version)
+                ), 10)
+
+        return
 
 
 def which(program):
@@ -568,7 +666,9 @@ def check_package_sanity(package_path, python, mkrelease, no_net=False):
     print_msg("Installing collective.dist in ", python)
     cmd = python + " setup.py easy_install -q -U collective.dist"
     try:
-        subprocess.check_call(cmd, cwd=package_path, shell=True)
+        #todo: enable
+        #subprocess.check_call(cmd, cwd=package_path, shell=True)
+        pass
     except subprocess.CalledProcessError:
         raise Error("Failed to install collective.dist in", python)
 
@@ -610,7 +710,7 @@ def get_config(cfg, name, value, method="get", section="*"):
 
 
 def main(*a, **kw):
-    #raise NotImplementedError("This package is under development; use released egg")
+    raise NotImplementedError("This package is under development; use released egg")
     try:
         sources, autocheckout = get_buildout()
     except Exception, e:
@@ -686,7 +786,8 @@ def main(*a, **kw):
                 raise Error("ERROR: Package %s can't be found. Quiting." % package)
 
             print_msg("Releasing package: ", package)
-            release_package(package, sources, args, config)
+            monkey = Monkey(package, sources, args, config)
+            monkey.release()
 
     except Error, e:
         print_msg(" ".join(e.args))
