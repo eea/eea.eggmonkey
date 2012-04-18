@@ -362,6 +362,16 @@ class SubversionSCM(GenericSCM):
         paths = " ".join(paths)
         self.execute(['svn', 'commmit'] + paths + ['-m', message])
 
+    def is_dirty(self):
+        ret = subprocess.Popen(['svn', 'status', '.'], 
+                                stdout=subprocess.PIPE, cwd=self.path)
+        out, err = ret.communicate()
+
+        if ret.returncode == 0:
+            return bool(out.splitlines())
+
+        raise ValueError("Error when trying to get scm status")
+
 
 class GitSCM(GenericSCM):
     """Implementation of git scm
@@ -385,6 +395,17 @@ class GitSCM(GenericSCM):
         paths = " ".join(paths)
         self.execute(["git", "pull", "-u"])
 
+    def is_dirty(self):
+        ret = subprocess.Popen(['git', 'status', '--porcelain', 
+                '--untracked-files=no', '.'], stdout=subprocess.PIPE, 
+                cwd=self.path)
+        out, err = ret.communicate()
+
+        if ret.returncode == 0:
+            return bool(out.splitlines())
+
+        raise ValueError("Error when trying to get scm status")
+
 
 class MercurialSCM(GenericSCM):
     """Implementation of git scm
@@ -407,6 +428,16 @@ class MercurialSCM(GenericSCM):
     def update(self, paths):
         paths = " ".join(paths)
         self.execute(["hg", "pull", "-u"])
+
+    def is_dirty(self):
+        ret = subprocess.Popen(['hg', 'status', '-mar', '.'], 
+                                stdout=subprocess.PIPE, cwd=self.path)
+        out, err = ret.communicate()
+
+        if ret.returncode == 0:
+            return bool(out.splitlines())
+
+        raise ValueError("Error when trying to get scm status")
 
 
 class Monkey():
@@ -450,9 +481,58 @@ class Monkey():
 
         return _scm
 
+    def check_package_sanity(self):
+        if self.pkg_scm.is_dirty():
+            raise Error("Package is dirty. Quiting")
+
+        # check if we have hardcoded version in setup.py
+        # this is a dumb but hopefully effective method: we look for a line
+        # starting with version= and fail if there's a number on it
+        setup_py = find_file(self.package_path, 'setup.py')
+        f = open(setup_py)
+        version = [l for l in f.readlines() if l.strip().startswith('version')]
+        for l in version:
+            for c in l:
+                if c.isdigit():
+                    raise Error("There's a hardcoded version in the "
+                                "setup.py file. Quiting.")
+
+        if not os.path.exists(self.package_path):
+            raise Error("Path %s is invalid, quiting." % self.package_path)
+
+        vv = get_version(self.package_path)
+        vh = FileHistoryParser(self.package_path).get_current_version()
+
+        if not "-dev" in vv:
+            raise Error("Version.txt file is not at -dev. Quiting.")
+
+        if not "-dev" in vh:
+            raise Error("HISTORY.txt file is not at -dev. Quiting.")
+
+        if vh != vv:
+            raise Error("Latest version in HISTORY.txt is not the "
+                        "same as in version.txt. Quiting.")
+
+        # We depend on collective.dist installed in the python.
+        # Installing eggmonkey under buildout with a different python doesn't
+        # install properly the collective.dist
+
+        print_msg("Installing collective.dist in ", self.python)
+        cmd = self.python + " setup.py easy_install -q -U collective.dist"
+        try:
+            subprocess.check_call(cmd, cwd=self.package_path, shell=True)
+        except subprocess.CalledProcessError:
+            raise Error("Failed to install collective.dist in", self.python)
+
+        # check if package metadata is properly filled
+        try:
+            cmd = self.python + " setup.py check --strict"
+            subprocess.check_call(cmd, cwd=self.package_path, shell=True)
+        except subprocess.CalledProcessError:
+            raise Error("Package has improperly filled metadata. Quiting")
+
     def release_package(self):
-        check_package_sanity(self.package_path, self.python, self.mkrelease, 
-                             self.no_net)
+        self.check_package_sanity()
 
         do_step(lambda:bump_version(self.package_path), 1)
         do_step(lambda:bump_history(self.package_path), 2)
@@ -608,84 +688,19 @@ def check_global_sanity(args, config):
     if config != None:
         for section in filter(lambda s:s.strip() != "*", config.sections()):
             tocheck.append((section, {
-                'domain':get_config(config, "domain", "", section=section).split() or [],
-                'manual_upload':(get_config(config, "manual_upload", None, 'getboolean', section) in (False, True)) or args.manual_upload,
-                'mkrelease':get_config(config, "mkrelease", None, section=section) or args.mkrelease,
-                'python':get_config(config, "python", None, section=section) or args.python,
+                'domain':get_config(config, "domain", "", 
+                                    section=section).split() or [],
+                'manual_upload':(get_config(config, "manual_upload", 
+                                None, 'getboolean', section) in (False, True)) 
+                                or args.manual_upload,
+                'mkrelease':get_config(config, "mkrelease", None, 
+                                    section=section) or args.mkrelease,
+                'python':get_config(config, "python", None, 
+                                    section=section) or args.python,
                 }))
 
     for s in tocheck:
         _check(**s[1])
-
-
-def check_package_sanity(package_path, python, mkrelease, no_net=False):
-    wd = workdir.open(package_path)
-    try:
-        if not no_net:
-            wd.update()
-    except subprocess.CalledProcessError:
-        raise Error("Package is dirty. Quiting")
-
-    ##anyvc
-    #try:
-        #cmd = ["svn", "up"]
-        #if not no_net:
-            #subprocess.check_call(cmd, cwd=package_path)
-    #except subprocess.CalledProcessError:
-        #raise Error("Package is dirty. Quiting")
-
-    #check if we have hardcoded version in setup.py
-    #this is a dumb but hopefully effective method: we look for a line
-    #starting with version= and fail if there's a number on it
-    setup_py = find_file(package_path, 'setup.py')
-    f = open(setup_py)
-    version = [l for l in f.readlines() if l.strip().startswith('version')]
-    for l in version:
-        for c in l:
-            if c.isdigit():
-                raise Error("There's a hardcoded version in the setup.py file. Quiting.")
-
-    if not os.path.exists(package_path):
-        raise Error("Path %s is invalid, quiting." % package_path)
-
-    vv = get_version(package_path)
-    vh = FileHistoryParser(package_path).get_current_version()
-
-    if not "-dev" in vv:
-        raise Error("Version.txt file is not at -dev. Quiting.")
-
-    if not "-dev" in vh:
-        raise Error("HISTORY.txt file is not at -dev. Quiting.")
-
-    if vh != vv:
-        raise Error("Latest version in HISTORY.txt is not the same as in version.txt. Quiting.")
-
-    #we depend on collective.dist installed in the python.
-    #Installing eggmonkey under buildout with a different python doesn't
-    #install properly the collective.dist
-    print_msg("Installing collective.dist in ", python)
-    cmd = python + " setup.py easy_install -q -U collective.dist"
-    try:
-        #todo: enable
-        #subprocess.check_call(cmd, cwd=package_path, shell=True)
-        pass
-    except subprocess.CalledProcessError:
-        raise Error("Failed to install collective.dist in", python)
-
-    #if not no_net:
-        #try:
-            #subprocess.check_call(cmd, cwd=package_path, shell=True)
-        #except subprocess.CalledProcessError:
-            #raise Error("Failed to install collective.dist in", python)
-    #else:
-        #print_msg("Fake operation: " + cmd)
-
-    #check if package metadata is properly filled
-    try:
-        cmd = python + " setup.py check --strict"
-        subprocess.check_call(cmd, cwd=package_path, shell=True)
-    except subprocess.CalledProcessError:
-        raise Error("Package has improperly filled metadata. Quiting")
 
 
 def get_config(cfg, name, value, method="get", section="*"):
