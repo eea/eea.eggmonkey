@@ -4,6 +4,7 @@ Changelog
 
 0.34-dev - (unreleased)
 -----------------------
+ * Bug fix: fix scms [tiberich #4154]
 
 0.33 - (2012-04-19)
 -------------------
