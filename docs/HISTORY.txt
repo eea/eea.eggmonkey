@@ -4,6 +4,7 @@ Changelog
 
 0.33-dev - (unreleased)
 -----------------------
+ * Bug fix: fix scms wrongfully dealing with paths [tiberich #4154]
 
 0.32 - (2012-04-19)
 -------------------
