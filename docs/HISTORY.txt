@@ -2,11 +2,12 @@ Changelog
 =========
 [Tiberiu Ichim - tiberiu.ichim@eaudeweb.ro]
 
-0.32 - (2012-04-19)
+0.32-dev - (unreleased)
 -------------------
  * Bug fix: print_pypi_plone_unreleased_eggs sys exit with the right exit code (1)
    if there are package unreleased on pypi or plone.org.
    [voineali]
+ * Feature: also works with mercurial and git [tiberich #4154]
 
 0.31 - (2012-01-04)
 -------------------

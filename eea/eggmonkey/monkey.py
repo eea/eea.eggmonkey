@@ -178,6 +178,7 @@ class Monkey():
 
     def step_4(self, step, description):
         domains = []
+        import pdb; pdb.set_trace()
         for d in self.domain:
             domains.extend(['-d', d])
         cmd = [self.mkrelease, "-q"] + domains
