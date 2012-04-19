@@ -124,6 +124,7 @@ class Monkey():
         try:
             func()
         except Exception, e:
+            import pdb; pdb.set_trace()
             if not ignore_error:
                 print_msg("Got an error on step %s, but we continue: <%s>" % 
                             (step, e))
