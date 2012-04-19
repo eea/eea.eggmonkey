@@ -32,11 +32,9 @@ class SubversionSCM(GenericSCM):
         self.execute(["svn", "add", paths])
 
     def update(self, paths):
-        paths = " ".join(paths)
         self.execute(["svn", "update"] + paths)
 
     def commit(self, paths, message):
-        paths = " ".join(paths)
         self.execute(['svn', 'commmit'] + paths + ['-m', message])
 
     def is_dirty(self):
@@ -60,16 +58,13 @@ class GitSCM(GenericSCM):
         self.commit(paths, message)
 
     def add(self, paths):
-        paths = " ".join(paths)
         self.execute(["git", "add", paths])
 
     def commit(self, paths, message):
-        paths = " ".join(paths)
         self.execute(['git', 'commmit'] + paths + ['-m', message])
         self.execute(['git', 'push'])
 
     def update(self, paths):
-        paths = " ".join(paths)
         self.execute(["git", "pull", "-u"])
 
     def is_dirty(self):
@@ -94,16 +89,13 @@ class MercurialSCM(GenericSCM):
         self.commit(paths, message)
 
     def add(self, paths):
-        paths = " ".join(paths)
-        self.execute(["hg", "add", paths])
+        self.execute(["hg", "add"] + paths)
 
     def commit(self, paths, message):
-        paths = " ".join(paths)
         self.execute(['hg', 'commmit'] + paths + ['-m', message])
         self.execute(['hg', 'push'])
 
     def update(self, paths):
-        paths = " ".join(paths)
         self.execute(["hg", "pull", "-u"])
 
     def is_dirty(self):
