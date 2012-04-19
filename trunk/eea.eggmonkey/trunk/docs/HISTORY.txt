@@ -2,8 +2,8 @@ Changelog
 =========
 [Tiberiu Ichim - tiberiu.ichim@eaudeweb.ro]
 
-0.33-dev - (unreleased)
------------------------
+0.33 - (2012-04-19)
+-------------------
  * Bug fix: fix scms wrongfully dealing with paths [tiberich #4154]
 
 0.32 - (2012-04-19)
