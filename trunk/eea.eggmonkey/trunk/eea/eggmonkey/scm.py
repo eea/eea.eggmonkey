@@ -42,6 +42,10 @@ class SubversionSCM(GenericSCM):
         out, err = ret.communicate()
 
         if ret.returncode == 0:
+            lines = out.splitlines()
+            if len(lines) == 1 and lines[0].startswith("?") and \
+                        lines[0].endswith("dist"):
+                return False
             return bool(out.splitlines())
 
         raise ValueError("Error when trying to get scm status")
