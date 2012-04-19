@@ -1,15 +1,16 @@
 #from StringIO import StringIO
 
-from colorama import Fore, init # Back, Style
-from itertools import chain
+from eea.eggmonkey.scm import get_scm
+from eea.eggmonkey.utils import Error, EGGMONKEY, EXTERNAL, find_file, which
+from eea.eggmonkey.version import FileHistoryParser
+from eea.eggmonkey.version import bump_history, change_version, bump_version
+from eea.eggmonkey.version import get_version
 import ConfigParser
 import argparse
 import cPickle
-import datetime
 import os
 import subprocess
 import sys
-import urllib2
 
 
 INSTRUCTIONS = """
@@ -25,10 +26,6 @@ INSTRUCTIONS = """
 #10. SVN commit the dev version of the package.
 """
 
-init()
-EGGMONKEY = Fore.RED + "EGGMONKEY: " + Fore.RESET
-EXTERNAL = Fore.BLUE + "RUNNING: " + Fore.RESET
-
 
 def print_msg(*msgs):
     if isinstance(msgs, (list, tuple)):
@@ -37,19 +34,11 @@ def print_msg(*msgs):
         s = msgs
     print EGGMONKEY + s
 
-class Error(Exception):
-    """ EggMonkey runtime error """
-
 
 MANIFEST = """global-exclude *pyc
 global-exclude *~
 global-exclude *.un~
 """
-
-
-def run(callables):
-    for l in callables:
-        l()
 
 
 def get_buildout():
@@ -60,263 +49,6 @@ def get_buildout():
     return buildout
 
 
-def find_file(path, name):
-    for root, _dirs, names in os.walk(path):
-        if name in names:
-            return os.path.join(root, name)
-
-    raise ValueError("File not found: %s in %s" % (name, path))
-
-
-def get_digits(s):
-    """Returns only the digits in a string"""
-    return "".join(filter(lambda c:c.isdigit(), s))
-
-
-def _increment_version(version):
-    devel  = version.endswith('dev') or version.endswith('svn')
-    ver    = version.split('-')[0].split('.')
-    ver    = map(get_digits, ver)
-    minor  = int(ver[-1]) + int(not devel)
-    newver = ".".join(ver[:-1]) + ".%s%s" % (minor, (not devel and "-dev" or ""))
-    return newver
-
-
-def bump_version(path):
-    """Writes new versions into version file
-
-    It will always go from dev to final and from released to
-    increased dev number. Example:
-
-    Called first time:
-    1.6.28-dev  =>  1.6.28
-
-    Called second time:
-    1.6.28  =>  1.6.29-dev
-    """
-    v_path = find_file(path, "version.txt")
-    f = open(v_path, 'rw+')
-    version = f.read().strip()
-    try:
-        validate_version(version)
-    except ValueError:
-        raise Error("Got invalid version " + version)
-
-    newver = _increment_version(version)
-    f.truncate(0); f.seek(0)
-    f.write(newver)
-    f.close()
-
-
-def get_version(path):
-    """Retrieves the version for a package
-    """
-    v_path = find_file(path, "version.txt")
-    f      = open(v_path, 'r')
-    version = f.read().strip()
-    try:
-        validate_version(version)
-    except ValueError:
-        raise Error("Got invalid version " + version)
-
-    return version
-
-
-class HistoryParser(object):
-    """A history parser that receives a list of lines in constructor"""
-
-    header = None
-    entries = None
-
-    def __init__(self, original):
-        self.header   = []
-        self.entries  = []
-        self.original = original.splitlines()
-        section_start = None
-        section_end   = None
-
-        header_flag   = True
-        for nr, line in enumerate(self.original):
-            if line and (line[0].isdigit() or (line[0] == 'r' and 
-                                                    line[1].isdigit())):
-                if (nr == len(self.original) - 1):  #we test if is last line
-                    section_start = nr
-                #we test if next line is underlined
-                elif self.original[nr+1].strip()[0] in "-=~^":      
-                    section_start = nr
-                header_flag = False
-
-                #we travel through the file until we find a new section start
-                nl = nr + 1
-                while nl < len(self.original):
-                    if self.original[nl] and (self.original[nl][0].isdigit() or
-                            (self.original[nl][0] == 'r' and 
-                                    self.original[nl][1].isdigit())):
-                        section_end = nl - 1
-                        break
-                    nl += 1
-
-            if not section_start and header_flag:   
-                #if there's no section, this means we have file header
-                self.header.append(line)
-
-            if section_start and section_end:   # a section is completed
-                self.entries.append(filter(
-                                       #we filter empty lines
-                                       lambda li:li.strip(), 
-                                       self.original[section_start:section_end]))
-                section_start = None
-                section_end = None
-
-            if section_start and (not section_end) and \
-                    (nr == len(self.original) - 1):  
-                    #end of file means end of section
-                section_end = len(self.original)
-                self.entries.append(filter(
-                                        #we filter empty lines
-                                        lambda li:li.strip(), 
-                                   self.original[section_start:section_end]))
-
-    def _create_released_section(self):
-        section = self.entries[0]
-        header  = section[0]
-        version = header.split(" ")[0]
-        try:
-            validate_version(version)
-        except ValueError:
-            raise Error("Got invalid version " + version)
-
-        newver     = _increment_version(version)
-        today      = str(datetime.datetime.now().date())
-        section[0] = u"%s - (%s)" % (newver, today)
-        section[1] = u"-" * len(section[0])
-
-    def _create_dev_section(self):
-        section = self.entries[0]
-        header  = section[0]
-        version = header.split(" ")[0]
-        try:
-            validate_version(version)
-        except ValueError:
-            raise Error("Got invalid version " + version)
-
-        newver = _increment_version(version)
-        line   = u"%s - (unreleased)" % (newver)
-
-        self.entries.insert(0, [
-                line,
-                u"-" * len(line)
-            ])
-
-    def get_current_version(self):
-        """Return the last version"""
-        section = self.entries[0]
-        header  = section[0]
-        version = header.split(" ")[0].strip()
-        try:
-            validate_version(version)
-        except ValueError:
-            raise Error("Got invalid version " + version)
-
-        return version
-
-
-class FileHistoryParser(HistoryParser):
-    """A history parser that also does file operations"""
-
-    def __init__(self, path):
-        h_path      = find_file(path, "HISTORY.txt")
-        self.h_path = h_path
-        f           = open(h_path, 'r')
-        content     = f.read()
-        HistoryParser.__init__(self, content)
-        f.close()
-
-    def write(self):
-        f = open(self.h_path, 'rw+')
-        f.truncate(0); f.seek(0)
-        f.write("\n".join([l for l in self.header if l.strip()]))
-        f.write("\n\n")
-        for section in self.entries:
-            f.write("\n".join([line for line in section if line.strip()]))
-            f.write("\n\n")
-        f.close()
-
-    def bump_version(self):
-        section = self.entries[0]
-        header  = section[0]
-
-        is_dev  = u'unreleased' in header.lower()
-
-        if is_dev:
-            self._create_released_section()
-        else:
-            self._create_dev_section()
-
-        self.write()
-
-
-def bump_history(path):
-    hp = FileHistoryParser(path)
-    hp.bump_version()
-
-
-def validate_version(version):
-    """See if what we consider a version number is actually a valid version number"""
-    version = version.strip()
-
-    if not "." in version:
-        raise ValueError
-
-    if version.endswith("."):
-        raise ValueError
-
-    #all parts need to contain digits, only the last part can contain -dev
-    parts = version.split('.')
-    if not len(parts) > 1:
-        raise ValueError
-
-    for part in parts[:-1]:
-        for c in part:
-            if not c.isdigit():
-                raise ValueError
-
-    lp = parts[-1]
-    if lp.endswith("-dev"):
-        lp = lp.split("-dev")
-        if (len(lp) != 2) and (lp[1] == ''):
-            raise ValueError
-        lp = lp[0]
-
-    for c in lp:
-        if not c.isdigit():
-            raise ValueError
-
-    return True
-
-
-def change_version(path, package, version):
-    f = open(path, 'rw+')
-    b = []
-    _l = "%s = %s\n" % (package, version)
-
-    found = False
-    for line in f.readlines():
-        p = line.split("=")[0].strip()
-        if p == package:
-            b.append(_l)
-            found = True
-        else:
-            b.append(line)
-
-    if not found:
-        b.append(_l)
-
-    f.truncate(0); f.seek(0)
-    f.write("".join(b))
-    f.close()
-
-
 def do_step(func, step, ignore_error=False):
     try:
         func()
@@ -325,119 +57,6 @@ def do_step(func, step, ignore_error=False):
             print_msg("Got an error on step %s, but we continue: <%s>" % (step, e))
             print INSTRUCTIONS
             return
-
-
-class GenericSCM(object):
-    """Base SCM class
-    """
-
-    def __init__(self, path, no_net):
-        self.path = path
-        self.no_net = no_net
-
-    def execute(self, *args, **kwds):
-        print EXTERNAL + " ".join(list(chain(args)))
-        if not self.no_net:
-            subprocess.check_call(*args, cwd=self.path, **kwds)
-
-
-class SubversionSCM(GenericSCM):
-    """Implementation of subversion scm
-    """
-
-    def add_and_commit(self, paths, message=None):
-        self.add(paths)
-        message = message or "Added %s" % " ".join(paths)
-        self.commit(paths, message)
-
-    def add(self, paths):
-        paths = " ".join(paths)
-        self.execute(["svn", "add", paths])
-
-    def update(self, paths):
-        paths = " ".join(paths)
-        self.execute(["svn", "update"] + paths)
-
-    def commit(self, paths, message):
-        paths = " ".join(paths)
-        self.execute(['svn', 'commmit'] + paths + ['-m', message])
-
-    def is_dirty(self):
-        ret = subprocess.Popen(['svn', 'status', '.'], 
-                                stdout=subprocess.PIPE, cwd=self.path)
-        out, err = ret.communicate()
-
-        if ret.returncode == 0:
-            return bool(out.splitlines())
-
-        raise ValueError("Error when trying to get scm status")
-
-
-class GitSCM(GenericSCM):
-    """Implementation of git scm
-    """
-
-    def add_and_commit(self, paths, message=None):
-        self.add(paths)
-        message = message or "Added %s" % " ".join(paths)
-        self.commit(paths, message)
-
-    def add(self, paths):
-        paths = " ".join(paths)
-        self.execute(["git", "add", paths])
-
-    def commit(self, paths, message):
-        paths = " ".join(paths)
-        self.execute(['git', 'commmit'] + paths + ['-m', message])
-        self.execute(['git', 'push'])
-
-    def update(self, paths):
-        paths = " ".join(paths)
-        self.execute(["git", "pull", "-u"])
-
-    def is_dirty(self):
-        ret = subprocess.Popen(['git', 'status', '--porcelain', 
-                '--untracked-files=no', '.'], stdout=subprocess.PIPE, 
-                cwd=self.path)
-        out, err = ret.communicate()
-
-        if ret.returncode == 0:
-            return bool(out.splitlines())
-
-        raise ValueError("Error when trying to get scm status")
-
-
-class MercurialSCM(GenericSCM):
-    """Implementation of git scm
-    """
-
-    def add_and_commit(self, paths, message=None):
-        self.add(paths)
-        message = message or "Added %s" % " ".join(paths)
-        self.commit(paths, message)
-
-    def add(self, paths):
-        paths = " ".join(paths)
-        self.execute(["hg", "add", paths])
-
-    def commit(self, paths, message):
-        paths = " ".join(paths)
-        self.execute(['hg', 'commmit'] + paths + ['-m', message])
-        self.execute(['hg', 'push'])
-
-    def update(self, paths):
-        paths = " ".join(paths)
-        self.execute(["hg", "pull", "-u"])
-
-    def is_dirty(self):
-        ret = subprocess.Popen(['hg', 'status', '-mar', '.'], 
-                                stdout=subprocess.PIPE, cwd=self.path)
-        out, err = ret.communicate()
-
-        if ret.returncode == 0:
-            return bool(out.splitlines())
-
-        raise ValueError("Error when trying to get scm status")
 
 
 class Monkey():
@@ -456,30 +75,10 @@ class Monkey():
         self.no_net = args.no_network
 
         self.package_path = package_path = sources[package]['path']
-        self.pkg_scm = self.get_scm(package_path, self.no_net)
+        self.pkg_scm = get_scm(package_path, self.no_net)
 
         self.build_path = os.getcwd()
-        self.build_scm = self.get_scm(self.build_path, self.no_net)
-
-    def get_scm(self, path, no_net):
-        files = os.listdir(path)
-        scms = {
-                'svn':('.svn', SubversionSCM),
-                'git':('.git', GitSCM),
-                'hg':('.hg', MercurialSCM)
-                }
-
-        _scm = None
-        for k, v in scms.items():
-            marker, factory = v
-            if marker in files:
-                _scm = factory(path, no_net)
-                break
-        
-        if _scm == None:
-            raise ValueError ("Could not determine scm type")
-
-        return _scm
+        self.build_scm = get_scm(self.build_path, self.no_net)
 
     def check_package_sanity(self):
         if self.pkg_scm.is_dirty():
@@ -626,24 +225,6 @@ class Monkey():
                 ), 10)
 
         return
-
-
-def which(program):
-    """Check if an executable exists"""
-    def is_exe(fpath):
-        return os.path.exists(fpath) and os.access(fpath, os.X_OK)
-
-    fpath, _fname = os.path.split(program)
-    if fpath:
-        if is_exe(program):
-            return program
-    else:
-        for path in os.environ["PATH"].split(os.pathsep):
-            exe_file = os.path.join(path, program)
-            if is_exe(exe_file):
-                return exe_file
-
-    return None
 
 
 def check_global_sanity(args, config):
@@ -810,114 +391,3 @@ def main(*a, **kw):
 
     sys.exit(0)
 
-
-def print_unreleased_packages():
-    """Given a directory with packages (such as the src/ created by mr.developer,
-    traverses it and print packages that have changes in their history files
-    that haven't been released as eggs
-    """
-
-    unreleased = []
-
-    args = sys.argv
-    if len(args) == 1:
-        print "You need to provide a path where to look for packages"
-        sys.exit(1)
-
-    folder = args[1]
-    for name in os.listdir(folder):
-        dirname = os.path.join(folder, name)
-        if not os.path.isdir(dirname):
-            continue
-
-        print "Looking in ", dirname
-        try:
-            history = find_file(dirname, "HISTORY.txt")
-        except ValueError:
-            print "Did not find a history file, skipping"
-            continue
-        lines = open(history).read()
-        parser = HistoryParser(lines)
-        try:
-            if len(parser.entries[0]) > 2:
-                if parser.entries[0][2].strip() != "*":    #might be just a placeholder star
-                    unreleased.append(name)
-        except:
-            print "Got an error while processing history file, skipping"
-            continue
-
-    if not unreleased:
-        print "No unreleased packages have been found"
-    else:
-        print "The following packages have unreleased modifications:",
-        print ", ".join(unreleased)
-
-    sys.exit(0)
-
-
-#
-# Check if EEA packages are released also on pypi and plone.org
-#
-PYPI_PACKAGE = 'http://pypi.python.org/pypi/%s'
-PYPI_RELEASE = 'http://pypi.python.org/pypi/%s/%s'
-PLONE_PACKAGE = 'http://plone.org/products/%s'
-PLONE_RELEASE = 'http://plone.org/products/%s/releases/%s'
-
-def check_package_on_server(package, server):
-    """ Check if package is released on given server
-    """
-    try:
-        conn = urllib2.urlopen(server % package)
-    except urllib2.HTTPError:
-        return False
-    else:
-        conn.close()
-        return True
-
-
-def check_release_on_server(package, version, server):
-    """ Check if package version is available on given server
-    """
-    try:
-        conn = urllib2.urlopen(server % (package, version))
-    except urllib2.HTTPError:
-        return False
-    else:
-        conn.close()
-        return True
-
-
-def print_pypi_plone_unreleased_eggs():
-    """ Print packages that aren't released on pypi or plone.org
-    """
-    versions = {}
-    vfile = 'versions.cfg'
-    args = sys.argv
-    if len(args) > 1:
-        vfile = args[1]
-
-    with open(vfile, 'r') as vfile:
-        for line in vfile:
-            line = line.strip().split('=')
-            if len(line) == 2:
-                package, version = [x.strip() for x in line]
-                versions[package] = version
-
-    errors = False
-    for package, version in versions.items():
-        if 'eea' not in package.lower():
-            continue
-
-        if check_package_on_server(package, PLONE_PACKAGE):
-            if not check_release_on_server(package, version, PLONE_RELEASE):
-                errors = True
-                print "%30s:  %10s  not on plone.org" % (package, version)
-
-        if check_package_on_server(package, PYPI_PACKAGE):
-            if not check_release_on_server(package, version, PYPI_RELEASE):
-                errors = True
-                print "%30s:  %10s  not on pypi.python.org" % (
-                    package, version)
-
-    if errors:
-        sys.exit(1)
