@@ -178,7 +178,6 @@ class Monkey():
 
     def step_4(self, step, description):
         domains = []
-        import pdb; pdb.set_trace()
         for d in self.domain:
             domains.extend(['-d', d])
         cmd = [self.mkrelease, "-q"] + domains
@@ -191,7 +190,7 @@ class Monkey():
             print_msg("Fake operation: ", " ".join(cmd))
 
         if self.manual_upload:
-            for domain in domains:
+            for domain in self.domain:
                 cmd = self.python + \
                         ' setup.py -q sdist --formats zip upload -r ' + domain
                 if not self.no_net:
