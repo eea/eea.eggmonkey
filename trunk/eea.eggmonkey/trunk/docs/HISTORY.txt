@@ -2,6 +2,9 @@ Changelog
 =========
 [Tiberiu Ichim - tiberiu.ichim@eaudeweb.ro]
 
+0.33-dev - (unreleased)
+-----------------------
+
 0.32 - (2012-04-19)
 -------------------
  * Bug fix: print_pypi_plone_unreleased_eggs sys exit with the right exit code (1)
