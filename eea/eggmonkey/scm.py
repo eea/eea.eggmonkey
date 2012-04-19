@@ -28,8 +28,7 @@ class SubversionSCM(GenericSCM):
         self.commit(paths, message)
 
     def add(self, paths):
-        paths = " ".join(paths)
-        self.execute(["svn", "add", paths])
+        self.execute(["svn", "add"] + paths)
 
     def update(self, paths):
         self.execute(["svn", "update"] + paths)
@@ -58,7 +57,7 @@ class GitSCM(GenericSCM):
         self.commit(paths, message)
 
     def add(self, paths):
-        self.execute(["git", "add", paths])
+        self.execute(["git", "add"] + paths)
 
     def commit(self, paths, message):
         self.execute(['git', 'commmit'] + paths + ['-m', message])
