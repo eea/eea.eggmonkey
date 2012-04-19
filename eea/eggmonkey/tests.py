@@ -1,5 +1,11 @@
+from eea.eggmonkey.history import HistoryParser
+from eea.eggmonkey.version import _increment_version, validate_version
+import os
+import shutil
+import subprocess
+import sys
+import time
 import unittest
-from eea.eggmonkey.monkey import _increment_version, validate_version, HistoryParser
 #import pprint
 
 
@@ -64,6 +70,18 @@ class MonkeyTestCase(unittest.TestCase):
         assert len(es[0]) == 3
         assert len(es[1]) == 4
         assert len(es[2]) == 3
+
+    #def test_release(self):
+        #packages = os.path.join(os.path.dirname(__file__), '../packages/')
+        #pypi = os.path.join(os.path.dirname(__file__), 'simplepypi.py')
+        #python = sys.executable
+        #pythonpath = filter(lambda x:'/usr/lib/' not in x, sys.path)
+        #proc = subprocess.Popen([python, pypi], env={"PYTHONPATH":":".join(pythonpath)})
+        #time.sleep(2)
+
+        #shutil.copytree
+
+        #proc.kill()
 
 def test_suite():
     suite = unittest.TestLoader().loadTestsFromTestCase(MonkeyTestCase)
