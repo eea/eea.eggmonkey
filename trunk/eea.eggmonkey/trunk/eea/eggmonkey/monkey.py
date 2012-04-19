@@ -139,10 +139,10 @@ class Monkey():
             step(n, description)
 
     def step_1(self, step, description):
-        self.do_step(lambda:bump_version(self.package_path), step)
+        self.do_step(lambda:bump_version(self.package_path), step, description)
 
     def step_2(self, step, description):
-        self.do_step(lambda:bump_history(self.package_path), step)
+        self.do_step(lambda:bump_history(self.package_path), step, description)
 
     def step_3(self, step, description):
         manifest_path = os.path.join(self.package_path, 'MANIFEST.in')
