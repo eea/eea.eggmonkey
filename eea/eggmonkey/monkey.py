@@ -130,7 +130,7 @@ class Monkey():
                 print description
                 return
 
-    def release_package(self):
+    def release(self):
         self.check_package_sanity()
 
         for (n, description) in \
