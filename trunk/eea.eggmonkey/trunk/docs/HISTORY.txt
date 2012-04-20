@@ -2,8 +2,8 @@ Changelog
 =========
 [Tiberiu Ichim - tiberiu.ichim@eaudeweb.ro]
 
-0.36-dev - (unreleased)
------------------------
+0.36 - (2012-04-20)
+-------------------
  * Bug fix: fix scms [tiberich #4154]
 
 0.35 - (2012-04-20)
