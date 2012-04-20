@@ -124,7 +124,6 @@ class Monkey():
         try:
             func()
         except Exception, e:
-            import pdb; pdb.set_trace()
             if not ignore_error:
                 print_msg("Got an error on step %s, but we continue: <%s>" % 
                             (step, e))
@@ -244,9 +243,11 @@ class Monkey():
 
     def step_10(self, step, description):
         version = get_version(self.package_path)
-        self.do_step(lambda:self.pkg_scm.commit(
-            message='Updated version for %s to %s' % (self.package, version)
-                ), step, description)
+        self.do_step(
+            lambda:self.pkg_scm.commit([],
+                                       message='Updated version for %s to %s' % 
+                                               (self.package, version)), 
+            step, description)
 
 
 def check_global_sanity(args, config):

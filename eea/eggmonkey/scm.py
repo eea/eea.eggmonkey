@@ -34,7 +34,7 @@ class SubversionSCM(GenericSCM):
         self.execute(["svn", "update"] + paths)
 
     def commit(self, paths, message):
-        self.execute(['svn', 'commmit'] + paths + ['-m', message])
+        self.execute(['svn', 'commit'] + paths + ['-m', message])
 
     def is_dirty(self):
         ret = subprocess.Popen(['svn', 'status', '.'], 
@@ -64,7 +64,7 @@ class GitSCM(GenericSCM):
         self.execute(["git", "add"] + paths)
 
     def commit(self, paths, message):
-        self.execute(['git', 'commmit'] + paths + ['-m', message])
+        self.execute(['git', 'commit'] + paths + ['-m', message])
         self.execute(['git', 'push'])
 
     def update(self, paths):
@@ -95,7 +95,7 @@ class MercurialSCM(GenericSCM):
         self.execute(["hg", "add"] + paths)
 
     def commit(self, paths, message):
-        self.execute(['hg', 'commmit'] + paths + ['-m', message])
+        self.execute(['hg', 'commit'] + paths + ['-m', message])
         self.execute(['hg', 'push'])
 
     def update(self, paths):
