@@ -13,7 +13,7 @@ class GenericSCM(object):
         self.no_net = no_net
 
     def execute(self, *args, **kwds):
-        print EXTERNAL + " ".join(list(chain(args)))
+        print EXTERNAL + " ".join(list(chain(*args)))
         if not self.no_net:
             subprocess.check_call(*args, cwd=self.path, **kwds)
 
