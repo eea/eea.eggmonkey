@@ -6,57 +6,61 @@ import datetime
 class HistoryParser(object):
     """A history parser that receives a list of lines in constructor"""
 
-    header = None
+    file_header = None
     entries = None
 
     def __init__(self, original):
-        self.header   = []
+        self.file_header   = []
         self.entries  = []
-        self.original = original.splitlines()
+        split_original = original.splitlines()
         section_start = None
         section_end   = None
+        is_file_header = True
 
-        header_flag   = True
-        for nr, line in enumerate(self.original):
-            if line and (line[0].isdigit() or (line[0] == 'r' and 
-                                                    line[1].isdigit())):
-                if (nr == len(self.original) - 1):  #we test if is last line
-                    section_start = nr
-                #we test if next line is underlined
-                elif self.original[nr+1].strip()[0] in "-=~^":      
-                    section_start = nr
-                header_flag = False
+        is_version_header_line = lambda l: (
+                            l and 
+                            (l[0].isdigit() or 
+                            (l[0] == 'r' and l[1].isdigit())
+                        ))
 
-                #we travel through the file until we find a new section start
-                nl = nr + 1
-                while nl < len(self.original):
-                    if self.original[nl] and (self.original[nl][0].isdigit() or
-                            (self.original[nl][0] == 'r' and 
-                                    self.original[nl][1].isdigit())):
-                        section_end = nl - 1
-                        break
-                    nl += 1
+        is_last_line_in_file = lambda n: n == (len(split_original) - 1)
+        is_underlined = lambda n:(len(split_original) - n) >= 2 and \
+                                 split_original[n+1].strip()[0] in "-=~^"
+        get_lines = lambda start, end:filter(lambda li:li.strip(), 
+                                             split_original[start:end])
 
-            if not section_start and header_flag:   
+        for lineno, line in enumerate(split_original):
+            if is_version_header_line(line):
+                if is_last_line_in_file(lineno):
+                    section_start = lineno
+                elif is_underlined(lineno): #we test if next line is underlined
+                    section_start = lineno
+
+                    is_file_header = False
+
+                    #we need to know where the section ends
+                    #we travel through the file until we find new section start
+                    nl = lineno + 1
+                    while nl < len(split_original):
+                        if is_version_header_line(split_original[nl]):
+                            section_end = nl - 1
+                            break
+                        nl += 1
+
+            if not section_start and is_file_header:   
                 #if there's no section, this means we have file header
-                self.header.append(line)
+                self.file_header.append(line)
 
             if section_start and section_end:   # a section is completed
-                self.entries.append(filter(
-                                       #we filter empty lines
-                                       lambda li:li.strip(), 
-                                       self.original[section_start:section_end]))
+                self.entries.append(get_lines(section_start, section_end))
                 section_start = None
                 section_end = None
 
             if section_start and (not section_end) and \
-                    (nr == len(self.original) - 1):  
+                                 is_last_line_in_file(lineno): 
                     #end of file means end of section
-                section_end = len(self.original)
-                self.entries.append(filter(
-                                        #we filter empty lines
-                                        lambda li:li.strip(), 
-                                   self.original[section_start:section_end]))
+                section_end = len(split_original)
+                self.entries.append(get_lines(section_start, section_end))
 
     def _create_released_section(self):
         section = self.entries[0]

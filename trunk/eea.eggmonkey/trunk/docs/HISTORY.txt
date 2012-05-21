@@ -4,6 +4,8 @@ Changelog
 
 0.37-dev - (unreleased)
 -----------------------
+ * Bug fix: don't fail when encountering history entry line that start with 
+   a revision number (in format rNNN) [tiberich #3978]
 
 0.36 - (2012-04-20)
 -------------------
