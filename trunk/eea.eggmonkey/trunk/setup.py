@@ -38,6 +38,7 @@ setup(name=name,
             'colorama',
             'collective.dist',
             'jarn.mkrelease',
+            'zest.pocompile',
 
             #anyvc and its required support for repositories
             #'anyvc',

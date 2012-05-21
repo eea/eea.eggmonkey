@@ -1,9 +1,10 @@
 #from StringIO import StringIO
 
+from eea.eggmonkey.history import FileHistoryParser, bump_history
 from eea.eggmonkey.scm import get_scm
 from eea.eggmonkey.utils import Error, EGGMONKEY, EXTERNAL, find_file, which
-from eea.eggmonkey.history import FileHistoryParser, bump_history
 from eea.eggmonkey.version import change_version, bump_version, get_version
+from zest.pocompile.compile import find_lc_messages
 import ConfigParser
 import argparse
 import cPickle
@@ -39,8 +40,8 @@ class Monkey():
     _instructions = """
     #1. Bump version.txt to correct version; from -dev to final
     #2. Update history file with release date; Record final release date
-    #3. Run "mkrelease -d eea" in package dir
-    #4. (Optional) Run "python setup.py sdist upload -r eea"
+    #3. Prepare the package for release
+    #4. Run "mkrelease -d eea" in package dir; (Optional) Run "python setup.py sdist upload -r eea"
     #5. Update versions.cfg file in buildout: svn up eea-buildout/versions.cfg
     #6. Change version for package in eea-buildout/versions.cfg
     #7. Commit versions.cfg file: svn commit versions.cfg
@@ -150,9 +151,11 @@ class Monkey():
             f = open(manifest_path, 'w+')
 
             f.write("global-exclude *pyc\nglobal-exclude *~\n" +
-                    "global-exclude *.un~")
+                    "global-exclude *.un~\nglobal-include locales *mo")
             f.close()
             self.pkg_scm.add_and_commit(self.package_path, ['MANIFEST.in'])
+
+        find_lc_messages(self.package_path) #compile po files
 
         if self.manual_upload:
             # when doing manual upload, if there's a setup.cfg file, 
