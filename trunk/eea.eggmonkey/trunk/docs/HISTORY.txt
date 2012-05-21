@@ -4,6 +4,7 @@ Changelog
 
 0.38-dev - (unreleased)
 -----------------------
+ * Bug fix: don't overwrite manifest file if it exists [tiberich]
 
 0.37 - (2012-05-21)
 -------------------
