@@ -36,6 +36,19 @@ H2 = """Changelog
 -----------------
  * and something else
 
+r234 - (8-20-2008)
+-----------------
+ * entry 1
+ * entry 2
+
+r235 - (7-20-2008)
+-----------------
+ r3456 - entry A
+ * entry B
+ r3456 - entry C
+ r3457 - entry D
+ * entry E
+
 """
 
 
@@ -66,7 +79,7 @@ class MonkeyTestCase(unittest.TestCase):
 
         hp = HistoryParser(H2)
         es = hp.entries
-        assert len(es) == 3
+        assert len(es) == 5
         assert len(es[0]) == 3
         assert len(es[1]) == 4
         assert len(es[2]) == 3

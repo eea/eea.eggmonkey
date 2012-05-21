@@ -71,8 +71,8 @@ class Monkey():
                                     self._instructions.splitlines()))
 
     def check_package_sanity(self):
-        if self.pkg_scm.is_dirty():
-            raise Error("Package is dirty. Quiting")
+        #if self.pkg_scm.is_dirty():
+            #raise Error("Package is dirty. Quiting")
 
         # check if we have hardcoded version in setup.py
         # this is a dumb but hopefully effective method: we look for a line
