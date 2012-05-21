@@ -2,8 +2,8 @@ Changelog
 =========
 [Tiberiu Ichim - tiberiu.ichim@eaudeweb.ro]
 
-0.37-dev - (unreleased)
------------------------
+0.37 - (2012-05-21)
+-------------------
  * Bug fix: don't fail when encountering history entry line that start with 
    a revision number (in format rNNN) [tiberich #3978]
  * Feature: use zest.pocompile to compile the po files to mo [tiberich #5120] 
