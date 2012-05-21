@@ -151,7 +151,7 @@ class Monkey():
             f = open(manifest_path, 'w+')
 
             f.write("global-exclude *pyc\nglobal-exclude *~\n" +
-                    "global-exclude *.un~\nglobal-include locales *mo")
+                    "global-exclude *.un~\nglobal-include *mo")
             f.close()
             self.pkg_scm.add_and_commit(self.package_path, ['MANIFEST.in'])
 
