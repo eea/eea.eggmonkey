@@ -2,6 +2,9 @@ Changelog
 =========
 [Tiberiu Ichim - tiberiu.ichim@eaudeweb.ro]
 
+0.38-dev - (unreleased)
+-----------------------
+
 0.37 - (2012-05-21)
 -------------------
  * Bug fix: don't fail when encountering history entry line that start with 
