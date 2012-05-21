@@ -155,8 +155,10 @@ class Monkey():
             f.close()
             self.pkg_scm.add_and_commit(self.package_path, ['MANIFEST.in'])
         else:
-            with open(manifest_path, 'a+b') as f:
-                f.write("global-include *mo\n")
+            with open(manifest_path, 'a+') as f:
+                if not 'global-include *mo' in f.read():
+                    f.seek(0)
+                    f.write("global-include *mo\n")
 
         find_lc_messages(self.package_path) #compile po files
 

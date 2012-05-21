@@ -2,8 +2,11 @@ Changelog
 =========
 [Tiberiu Ichim - tiberiu.ichim@eaudeweb.ro]
 
-0.38-dev - (unreleased)
------------------------
+0.38 - (unreleased)
+-------------------
+
+0.38-dev - (2012-05-21)
+-------------------
  * Bug fix: don't overwrite manifest file if it exists [tiberich]
 
 0.37 - (2012-05-21)
