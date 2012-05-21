@@ -120,7 +120,7 @@ class FileHistoryParser(HistoryParser):
     def write(self):
         f = open(self.h_path, 'rw+')
         f.truncate(0); f.seek(0)
-        f.write("\n".join([l for l in self.header if l.strip()]))
+        f.write("\n".join([l for l in self.file_header if l.strip()]))
         f.write("\n\n")
         for section in self.entries:
             f.write("\n".join([line for line in section if line.strip()]))
