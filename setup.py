@@ -50,7 +50,7 @@ setup(name=name,
         entry_points={
             "console_scripts":[
                 "monkey = eea.eggmonkey.monkey:main" ,
-                "print_unreleased_packages = eea.eggmonkey.monkey:print_unreleased_packages" ,
+                "print_unreleased_packages = eea.eggmonkey.pypi:print_unreleased_packages" ,
                 "print_pypi_plone_unreleased_eggs = eea.eggmonkey.pypi:print_pypi_plone_unreleased_eggs",
                 #"testpypi = eea.eggmonkey.simplepypi:main",
                 ],
