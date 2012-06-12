@@ -125,7 +125,7 @@ class Monkey():
         try:
             func()
         except Exception, e:
-            if not ignore_error:
+            if ignore_error:
                 print_msg("Got an error on step %s, but we continue: <%s>" % 
                             (step, e))
                 print description
