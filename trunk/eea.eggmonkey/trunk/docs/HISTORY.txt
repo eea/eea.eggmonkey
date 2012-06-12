@@ -10,14 +10,14 @@ Changelog
 * Bug fix: exit eggmonkey when not ignoring errors and there's an error
   [tiberich]
 
-0.39-dev - (2012-05-21)
+0.39 - (2012-05-21)
 -----------------------
 * Bug fix: fix entry point for print_unreleased_packages
   [tiberich]
 * Bug fix: fixed markup of HISTORY.txt file
   [ciobabog refs #5231]
 
-0.38-dev - (2012-05-21)
+0.38 - (2012-05-21)
 -----------------------
 * Bug fix: don't overwrite manifest file if it exists
   [tiberich]
