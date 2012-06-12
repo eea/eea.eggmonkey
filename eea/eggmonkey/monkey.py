@@ -130,6 +130,8 @@ class Monkey():
                             (step, e))
                 print description
                 return
+            else:
+                raise
 
     def release(self):
         self.check_package_sanity()
