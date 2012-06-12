@@ -2,6 +2,9 @@ Changelog
 =========
 [Tiberiu Ichim - tiberiu.ichim@eaudeweb.ro]
 
+0.40 - (unreleased)
+-------------------
+
 0.40-dev - (2012-06-12)
 -----------------------
 * Bug fix: exit eggmonkey when not ignoring errors and there's an error
