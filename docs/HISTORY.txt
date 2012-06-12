@@ -2,6 +2,9 @@ Changelog
 =========
 [Tiberiu Ichim - tiberiu.ichim@eaudeweb.ro]
 
+0.39 - (unreleased)
+-------------------
+
 0.39-dev - (2012-05-21)
 -----------------------
 * Bug fix: fix entry point for print_unreleased_packages
