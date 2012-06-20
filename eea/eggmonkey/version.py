@@ -3,15 +3,37 @@ from eea.eggmonkey.utils import find_file, Error
 
 def get_digits(s):
     """Returns only the digits in a string"""
-    return "".join(filter(lambda c:c.isdigit(), s))
+    return int("".join(filter(lambda c:c.isdigit(), s)))
 
 
 def _increment_version(version):
     devel  = version.endswith('dev') or version.endswith('svn')
-    ver    = version.split('-')[0].split('.')
-    ver    = map(get_digits, ver)
-    minor  = int(ver[-1]) + int(not devel)
-    newver = ".".join(ver[:-1]) + ".%s%s" % (minor, (not devel and "-dev" or ""))
+    release_final = not devel
+
+    ver = version.split('-')[0].split('.')
+    ver = map(get_digits, ver)
+
+    last = True #flag for last digit, we treat it differently
+    bump = False
+    out = []
+    length = len(ver)
+    i = 0
+    for n in reversed(ver):
+        n = n + int(not devel and last) + int(bump)
+        i += 1
+        if n >= 10 and not (i == length):
+            n = 0
+            bump = True
+        else:
+            bump = False
+        last = False
+        out.append(n)
+    
+    out = map(str, reversed(out))
+    newver = ".".join(out) + (not devel and "-dev" or "")
+
+    #minor  = int(ver[-1]) + int(not devel)
+    #newver = ".".join(ver[:-1]) + ".%s%s" % (minor, (not devel and "-dev" or ""))
     return newver
 
 

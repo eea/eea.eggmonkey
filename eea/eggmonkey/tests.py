@@ -55,10 +55,19 @@ r235 - (7-20-2008)
 class MonkeyTestCase(unittest.TestCase):
 
     def test_increment(self):
-        assert _increment_version("1.0"), "1.1-dev"
-        assert _increment_version("1.0-dev"), "1.0"
-        assert _increment_version("1.0dev"), "1.0"
-        assert _increment_version("0.1svn"), "0.1"
+        assert _increment_version("1.0") == "1.1-dev"
+        assert _increment_version("1.0-dev") == "1.0"
+        assert _increment_version("1.0dev") == "1.0"
+        assert _increment_version("0.1svn") == "0.1"
+
+        print _increment_version("0.9.9-dev")
+
+        assert _increment_version("0.9") == "1.0-dev"
+        assert _increment_version("0.0.1") == "0.0.2-dev"
+        assert _increment_version("0.0.1-dev") == "0.0.1"
+        assert _increment_version("0.0.9") == "0.1.0-dev"
+        assert _increment_version("0.9.9") == "1.0.0-dev"
+        assert _increment_version("0.9.9-dev") == "0.9.9"
 
     def test_validate_version(self):
 
