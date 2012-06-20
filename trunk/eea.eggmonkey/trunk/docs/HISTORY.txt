@@ -4,6 +4,9 @@ Changelog
 
 0.41-dev - (unreleased)
 -----------------------
+* Change: use a different versioning strategy for increasing versions
+  Now we go from 0.0.9 to 0.1.0 instead of 0.0.10
+  [tiberich #5293]
 
 0.40 - (2012-06-12)
 -----------------------
