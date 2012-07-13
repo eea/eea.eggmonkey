@@ -81,6 +81,7 @@ def print_unreleased_packages():
     """
 
     unreleased = []
+    changes = ''
 
     args = sys.argv
     if len(args) == 1:
@@ -93,7 +94,7 @@ def print_unreleased_packages():
         if not os.path.isdir(dirname):
             continue
 
-        print "Looking in ", dirname
+        print "Looking in package %s" % dirname
         try:
             history = find_file(dirname, "HISTORY.txt")
         except ValueError:
@@ -105,6 +106,9 @@ def print_unreleased_packages():
             if len(parser.entries[0]) > 2:
                 if parser.entries[0][2].strip() != "*":    #might be just a placeholder star
                     unreleased.append(name)
+                    changes += "\n\n%s\n============================\n" % dirname
+                    for change in parser.entries[0][2:]:
+                        changes += "\n" + change
         except:
             print "Got an error while processing history file, skipping"
             continue
@@ -112,6 +116,9 @@ def print_unreleased_packages():
     if not unreleased:
         print "No unreleased packages have been found"
     else:
+        print "\n\n\n"
+        print changes
+        print "\n\n"
         print "The following packages have unreleased modifications:",
         print ", ".join(unreleased)
 

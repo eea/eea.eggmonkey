@@ -4,6 +4,9 @@ Changelog
 
 0.41-dev - (unreleased)
 -----------------------
+* Feature: improved output with changelog of unreleased eggs, 
+  so we quickly know what is in each unreleased egg. 
+  [demarant refs #5224]
 * Change: use a different versioning strategy for increasing versions
   Now we go from 0.0.9 to 0.1.0 instead of 0.0.10
   [tiberich #5293]
