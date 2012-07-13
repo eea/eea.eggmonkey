@@ -2,6 +2,9 @@ Changelog
 =========
 [Tiberiu Ichim - tiberiu.ichim@eaudeweb.ro]
 
+1.1-dev - (unreleased)
+----------------------
+
 1.0 - (2012-07-13)
 ------------------
 * Feature: improved output with changelog of unreleased eggs, 
