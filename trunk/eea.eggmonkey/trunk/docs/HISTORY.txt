@@ -2,6 +2,9 @@ Changelog
 =========
 [Tiberiu Ichim - tiberiu.ichim@eaudeweb.ro]
 
+1.3-dev - (unreleased)
+----------------------
+
 1.2 - (2012-08-07)
 ------------------
 * Change: make manual upload the default operation, avoids problem with
