@@ -54,7 +54,11 @@ class Monkey():
         self.package = package
 
         self.python = get_config(config, "python", args.python, section=package)
-        self.domain = get_config(config, "domain", args.domain, section=package)
+        domain = get_config(config, "domain", args.domain, section=package)
+        if isinstance(domain, basestring):
+            self.domain = [domain]
+        else:
+            self.domain = domain
         self.manual_upload = get_config(config, "manual_upload", 
                                         args.manual_upload, section=package)
         self.mkrelease = get_config(config, "mkrelease", args.mkrelease, 
@@ -439,3 +443,46 @@ def main(*a, **kw):
 
     sys.exit(0)
 
+
+def devify(*a, **kw):
+    """Make a package to be at -dev, no matter what
+    """
+
+    try:
+        sources, autocheckout = get_buildout()
+    except Exception, e:
+        print_msg("Got exception while trying to open monkey cache file: " + 
+                  str(e))
+        print "You need to run buildout first, before running the monkey"
+        print "Also, make sure you run the eggmonkey from the buildout folder"
+        sys.exit(1)
+
+    cmd = argparse.ArgumentParser(
+            u"Devivy: make a package to be -dev version\n")
+
+    cmd.add_argument("packages", nargs="*", metavar="PACKAGE",
+                help=u"The packages to devify. Can be any of: [ %s ]" %
+                     u" ".join(sorted(sources.keys())))
+
+    args = cmd.parse_args()
+    packages = args.packages
+
+    if not packages:
+        cmd.print_help()
+        sys.exit(1)
+
+    for package in packages:
+        package_path = sources[package]['path']
+        parser = FileHistoryParser(package_path)
+        changed = parser._make_dev()
+        version = parser.get_current_version()
+        version_file = find_file(package_path, 'version.txt')
+        with open(version_file, 'w') as f:
+            f.write(version)
+
+        if changed:
+            print "Changed version to -dev for package", package
+        else:
+            print "Package", package, " already at -dev"
+
+        version
