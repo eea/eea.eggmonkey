@@ -403,7 +403,7 @@ def main(*a, **kw):
                     help=u"The repository aliases. Defaults to 'eea'. "
                         u"Specify multiple times to upload egg "
                         u"to multiple repositories.",
-                        default=None,
+                        default=(),
                     )
 
     args = cmd.parse_args()
