@@ -112,6 +112,8 @@ def validate_version(version):
 
 
 def change_version(path, package, version):
+    """Changes version in a versions.cfg buildout file
+    """
     f = open(path, 'rw+')
     b = []
     _l = "%s = %s\n" % (package, version)

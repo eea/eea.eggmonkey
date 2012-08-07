@@ -140,6 +140,22 @@ class FileHistoryParser(HistoryParser):
 
         self.write()
 
+    def _make_dev(self):
+        """Make the first entry to be at -dev. Used in the devify script
+
+        Returns true if a change needed to be made
+        """
+        section = self.entries[0]
+        header  = section[0]
+
+        is_dev  = u'unreleased' in header.lower()
+
+        if not is_dev:
+            self._create_released_section()
+            self.write()
+            return True
+
+        return False
 
 def bump_history(path):
     hp = FileHistoryParser(path)
