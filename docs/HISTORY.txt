@@ -7,6 +7,8 @@ Changelog
 * Feature: added utility script that will simply make a package be at -dev
   version. This is useful when developing eggmonkey itself.
   [tiberich #5356]
+* Bug fix: fixed handling of default domains 
+  [tiberich #5356]
 
 1.0 - (2012-07-13)
 ------------------

@@ -54,11 +54,15 @@ class Monkey():
         self.package = package
 
         self.python = get_config(config, "python", args.python, section=package)
-        domain = get_config(config, "domain", args.domain, section=package)
-        if isinstance(domain, basestring):
-            self.domain = [domain]
-        else:
-            self.domain = domain
+            
+        self.domain = get_config(config, "domain", None, section=package)
+        if not self.domain:
+            self.domain = ['eea']
+        self.domain = args.domain or self.domain
+
+        if isinstance(self.domain, basestring):
+            self.domain = [self.domain]
+
         self.manual_upload = get_config(config, "manual_upload", 
                                         args.manual_upload, section=package)
         self.mkrelease = get_config(config, "mkrelease", args.mkrelease, 
@@ -399,13 +403,10 @@ def main(*a, **kw):
                     help=u"The repository aliases. Defaults to 'eea'. "
                         u"Specify multiple times to upload egg "
                         u"to multiple repositories.",
-                        default=get_config(config, "domain", "").split() or [],
+                        default=None,
                     )
 
     args = cmd.parse_args()
-
-    if not args.domain:
-        args.domain = ['eea']
 
     packages = args.packages
     if not packages and not args.autocheckout:
