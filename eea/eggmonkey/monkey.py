@@ -376,7 +376,7 @@ def main(*a, **kw):
 
     cmd.add_argument('-u', "--manual-upload", action='store_const', 
             const=True, default=get_config(config, "manual_upload", 
-                                            False, 'getboolean'),
+                                            True, 'getboolean'),
             help=u"Manually upload package to eggrepo. Runs an extra " +
                  u"upload step to ensure package is uploaded on eggrepo.")
 
