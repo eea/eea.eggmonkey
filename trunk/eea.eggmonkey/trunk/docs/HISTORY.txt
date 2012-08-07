@@ -4,6 +4,9 @@ Changelog
 
 1.2-dev - (unreleased)
 ----------------------
+* Change: make manual upload the default operation, avoids problem with
+  eea eggrepo server. 
+  [tiberich #5356]
 
 1.1 - (2012-08-07)
 ------------------
