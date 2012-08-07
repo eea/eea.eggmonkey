@@ -85,7 +85,10 @@ class HistoryParser(object):
         except ValueError:
             raise Error("Got invalid version " + version)
 
-        newver = _increment_version(version)
+        newver = version
+        while "dev" not in newver:
+            newver = _increment_version(newver)
+
         line   = u"%s - (unreleased)" % (newver)
 
         self.entries.insert(0, [
@@ -148,10 +151,11 @@ class FileHistoryParser(HistoryParser):
         section = self.entries[0]
         header  = section[0]
 
-        is_dev  = u'unreleased' in header.lower()
+        is_dev  = "dev" in self.get_current_version()
 
         if not is_dev:
             self._create_released_section()
+            self._create_dev_section()
             self.write()
             return True
 
