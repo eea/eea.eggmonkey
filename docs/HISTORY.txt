@@ -2,12 +2,14 @@ Changelog
 =========
 [Tiberiu Ichim - tiberiu.ichim@eaudeweb.ro]
 
-1.1-dev - (unreleased)
-----------------------
+1.1 - (2012-08-07)
+------------------
 * Feature: added utility script that will simply make a package be at -dev
   version. This is useful when developing eggmonkey itself.
   [tiberich #5356]
 * Bug fix: fixed handling of default domains 
+  [tiberich #5356]
+* Bug fix: fix handling commits with git repos
   [tiberich #5356]
 
 1.0 - (2012-07-13)
