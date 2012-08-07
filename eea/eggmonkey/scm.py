@@ -55,6 +55,24 @@ class GitSCM(GenericSCM):
     """Implementation of git scm
     """
 
+    def _get_modified(self):
+        ret = subprocess.Popen(['git', 'status', '.'], 
+                                stdout=subprocess.PIPE, cwd=self.path)
+        out, err = ret.communicate()
+        if ret.returncode == 0:
+            lines = out.splitlines()
+        else:
+            raise ValueError("Error when trying to get scm status")
+
+        modified = []
+        for l in lines:
+            if l.startswith("#") and l[1:].strip().startswith("modified:"):
+                #should use find() to find first space char
+                modified.append(l[1:].strip().split()[1])   
+
+        return modified
+        
+
     def add_and_commit(self, paths, message=None):
         self.add(paths)
         message = message or "Added %s" % " ".join(paths)
@@ -64,7 +82,11 @@ class GitSCM(GenericSCM):
         self.execute(["git", "add"] + paths)
 
     def commit(self, paths, message):
-        self.execute(['git', 'commit'] + paths + ['-m', message])
+        if not paths:
+            paths = self._get_modified()
+            
+        self.execute(['git', 'add'] + paths)
+        self.execute(['git', 'commit', '-m', message])
         self.execute(['git', 'push'])
 
     def update(self, paths):
