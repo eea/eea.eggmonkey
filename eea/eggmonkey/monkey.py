@@ -41,7 +41,7 @@ class Monkey():
     #1. Bump version.txt to correct version; from -dev to final
     #2. Update history file with release date; Record final release date
     #3. Prepare the package for release
-    #4. Run "mkrelease -d eea" in package dir; (Optional) Run "python setup.py sdist upload -r eea"
+    #4. Run "mkrelease -qp -d eea" in package dir; (Optional) Run "python setup.py sdist upload -r eea"
     #5. Update versions.cfg file in buildout: svn up eea-buildout/versions.cfg
     #6. Change version for package in eea-buildout/versions.cfg
     #7. Commit versions.cfg file: svn commit versions.cfg
@@ -54,7 +54,7 @@ class Monkey():
         self.package = package
 
         self.python = get_config(config, "python", args.python, section=package)
-            
+
         self.domain = get_config(config, "domain", None, section=package)
         if not self.domain:
             self.domain = ['eea']
@@ -63,9 +63,9 @@ class Monkey():
         if isinstance(self.domain, basestring):
             self.domain = [self.domain]
 
-        self.manual_upload = get_config(config, "manual_upload", 
+        self.manual_upload = get_config(config, "manual_upload",
                                         args.manual_upload, section=package)
-        self.mkrelease = get_config(config, "mkrelease", args.mkrelease, 
+        self.mkrelease = get_config(config, "mkrelease", args.mkrelease,
                                         section=package)
 
         self.no_net = args.no_network
@@ -76,7 +76,7 @@ class Monkey():
         self.build_path = os.getcwd()
         self.build_scm = get_scm(self.build_path, self.no_net)
 
-        self.instructions = filter(None, map(lambda s:s.strip(), 
+        self.instructions = filter(None, map(lambda s:s.strip(),
                                     self._instructions.splitlines()))
 
     def check_package_sanity(self):
@@ -134,7 +134,7 @@ class Monkey():
             func()
         except Exception, e:
             if ignore_error:
-                print_msg("Got an error on step %s, but we continue: <%s>" % 
+                print_msg("Got an error on step %s, but we continue: <%s>" %
                             (step, e))
                 print description
                 return
@@ -173,8 +173,8 @@ class Monkey():
         find_lc_messages(self.package_path) #compile po files
 
         if self.manual_upload:
-            # when doing manual upload, if there's a setup.cfg file, 
-            # we might get strange version so we change it here and 
+            # when doing manual upload, if there's a setup.cfg file,
+            # we might get strange version so we change it here and
             # again after the package release
             if 'setup.cfg' in os.listdir(self.package_path):
                 print_msg("Changing setup.cfg to fit manual upload")
@@ -198,7 +198,7 @@ class Monkey():
         domains = []
         for d in self.domain:
             domains.extend(['-d', d])
-        cmd = [self.mkrelease, "-q"] + domains
+        cmd = [self.mkrelease, "-qp"] + domains
 
         if not self.no_net:
             print EXTERNAL + " ".join(cmd)
@@ -214,8 +214,8 @@ class Monkey():
                 if not self.no_net:
                     print EXTERNAL + cmd
                     self.do_step(
-                        lambda:subprocess.check_call(cmd, cwd=self.package_path, 
-                                                     shell=True), 
+                        lambda:subprocess.check_call(cmd, cwd=self.package_path,
+                                                     shell=True),
                         step, description)
                 else:
                     print EGGMONKEY + "Fake operation: " + cmd
@@ -237,20 +237,20 @@ class Monkey():
                 f.close()
 
     def step_5(self, step, description):
-        self.do_step(lambda:self.build_scm.update(['versions.cfg']), 
+        self.do_step(lambda:self.build_scm.update(['versions.cfg']),
                      step, description)
 
     def step_6(self, step, description):
         version = get_version(self.package_path)
         version_path = os.path.join(self.build_path, 'versions.cfg')
         self.do_step(lambda:change_version(path=version_path,
-                               package=self.package, version=version), 
+                               package=self.package, version=version),
                      step, description)
 
     def step_7(self, step, description):
         version = get_version(self.package_path)
-        self.do_step(lambda:self.build_scm.commit(paths=["versions.cfg"], 
-             message='Updated %s to %s' % (self.package, version)), 
+        self.do_step(lambda:self.build_scm.commit(paths=["versions.cfg"],
+             message='Updated %s to %s' % (self.package, version)),
              step, description)
 
     def step_8(self, step, description):
@@ -263,8 +263,8 @@ class Monkey():
         version = get_version(self.package_path)
         self.do_step(
             lambda:self.pkg_scm.commit([],
-                                       message='Updated version for %s to %s' % 
-                                               (self.package, version)), 
+                                       message='Updated version for %s to %s' %
+                                               (self.package, version)),
             step, description)
 
 
@@ -285,7 +285,7 @@ def check_global_sanity(args, config):
             raise Error("Could not find mkrelease script. Quiting.")
 
         #we check if this python has setuptools installed
-        #we need to redirect stderr to a file, I see no cleaner 
+        #we need to redirect stderr to a file, I see no cleaner
         #way to achieve this
         if (manual_upload != None) and manual_upload:
             err = open('_test_setuptools', 'wr+')
@@ -313,14 +313,14 @@ def check_global_sanity(args, config):
     if config != None:
         for section in filter(lambda s:s.strip() != "*", config.sections()):
             tocheck.append((section, {
-                'domain':get_config(config, "domain", "", 
+                'domain':get_config(config, "domain", "",
                                     section=section).split() or [],
-                'manual_upload':(get_config(config, "manual_upload", 
-                                None, 'getboolean', section) in (False, True)) 
+                'manual_upload':(get_config(config, "manual_upload",
+                                None, 'getboolean', section) in (False, True))
                                 or args.manual_upload,
-                'mkrelease':get_config(config, "mkrelease", None, 
+                'mkrelease':get_config(config, "mkrelease", None,
                                     section=section) or args.mkrelease,
-                'python':get_config(config, "python", None, 
+                'python':get_config(config, "python", None,
                                     section=section) or args.python,
                 }))
 
@@ -333,7 +333,7 @@ def get_config(cfg, name, value, method="get", section="*"):
 
     @param cfg: ConfigParser object or None
     @param method: the method that will be used to get the default)
-    @param value: the default value that will be returned, in case the 
+    @param value: the default value that will be returned, in case the
                   option does not exist
     """
     if cfg is None:
@@ -355,7 +355,7 @@ def main(*a, **kw):
     try:
         sources, autocheckout = get_buildout()
     except Exception, e:
-        print_msg("Got exception while trying to open monkey cache file: " + 
+        print_msg("Got exception while trying to open monkey cache file: " +
                   str(e))
         print "You need to run buildout first, before running the monkey"
         print "Also, make sure you run the eggmonkey from the buildout folder"
@@ -374,13 +374,13 @@ def main(*a, **kw):
             action='store_const', const=True, default=False,
             help=u"Don't run network operations")
 
-    cmd.add_argument('-u', "--manual-upload", action='store_const', 
-            const=True, default=get_config(config, "manual_upload", 
+    cmd.add_argument('-u', "--manual-upload", action='store_const',
+            const=True, default=get_config(config, "manual_upload",
                                             True, 'getboolean'),
             help=u"Manually upload package to eggrepo. Runs an extra " +
                  u"upload step to ensure package is uploaded on eggrepo.")
 
-    cmd.add_argument('-a', "--autocheckout", action='store_const', const=True, 
+    cmd.add_argument('-a', "--autocheckout", action='store_const', const=True,
             default=False, help=u"Process all eggs in autocheckout")
 
     cmd.add_argument("packages", nargs="*", metavar="PACKAGE",
@@ -388,18 +388,18 @@ def main(*a, **kw):
                      u" ".join(sorted(sources.keys())))
 
     cmd.add_argument('-m', "--mkrelease",
-                default=os.path.expanduser(get_config(config, "mkrelease", 
+                default=os.path.expanduser(get_config(config, "mkrelease",
                                                               "mkrelease")),
                 help=u"Path to mkrelease script. Defaults to 'mkrelease'")
 
     cmd.add_argument('-p', "--python",
-                     default=os.path.expanduser(get_config(config, 
+                     default=os.path.expanduser(get_config(config,
                                                         "python", "python")),
                      help=u"Path to Python binary which will be used "
                           u"to generate and upload the egg. "
                           u"Only used when doing --manual-upload")
 
-    cmd.add_argument('-d', "--domain", action="append", 
+    cmd.add_argument('-d', "--domain", action="append",
                     help=u"The repository aliases. Defaults to 'eea'. "
                         u"Specify multiple times to upload egg "
                         u"to multiple repositories.",
@@ -431,7 +431,7 @@ def main(*a, **kw):
                 raise Error("ERROR: you need to specify a package name, "
                             "not a path")
             if package not in sources:
-                raise Error("ERROR: Package %s can't be found. Quiting." 
+                raise Error("ERROR: Package %s can't be found. Quiting."
                                  % package)
 
             print_msg("Releasing package: ", package)
@@ -452,7 +452,7 @@ def devify(*a, **kw):
     try:
         sources, autocheckout = get_buildout()
     except Exception, e:
-        print_msg("Got exception while trying to open monkey cache file: " + 
+        print_msg("Got exception while trying to open monkey cache file: " +
                   str(e))
         print "You need to run buildout first, before running the monkey"
         print "Also, make sure you run the eggmonkey from the buildout folder"

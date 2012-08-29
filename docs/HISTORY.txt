@@ -4,11 +4,13 @@ Changelog
 
 1.3-dev - (unreleased)
 ----------------------
+* Bug fix: Push tags on github when releasing new eggs
+  [voineali fixes #5486]
 
 1.2 - (2012-08-07)
 ------------------
 * Change: make manual upload the default operation, avoids problem with
-  eea eggrepo server. 
+  eea eggrepo server.
   [tiberich #5356]
 
 1.1 - (2012-08-07)
@@ -16,15 +18,15 @@ Changelog
 * Feature: added utility script that will simply make a package be at -dev
   version. This is useful when developing eggmonkey itself.
   [tiberich #5356]
-* Bug fix: fixed handling of default domains 
+* Bug fix: fixed handling of default domains
   [tiberich #5356]
 * Bug fix: fix handling commits with git repos
   [tiberich #5356]
 
 1.0 - (2012-07-13)
 ------------------
-* Feature: improved output with changelog of unreleased eggs, 
-  so we quickly know what is in each unreleased egg. 
+* Feature: improved output with changelog of unreleased eggs,
+  so we quickly know what is in each unreleased egg.
   [demarant refs #5224]
 * Change: use a different versioning strategy for increasing versions
   Now we go from 0.0.9 to 0.1.0 instead of 0.0.10
@@ -49,11 +51,11 @@ Changelog
 
 0.37 - (2012-05-21)
 -------------------
-* Bug fix: don't fail when encountering history entry line that start with 
+* Bug fix: don't fail when encountering history entry line that start with
   a revision number (in format rNNN)
   [tiberich #3978]
 * Feature: use zest.pocompile to compile the po files to mo
-  [tiberich #5120] 
+  [tiberich #5120]
 
 0.36 - (2012-04-20)
 -------------------
