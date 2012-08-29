@@ -2,8 +2,8 @@ Changelog
 =========
 [Tiberiu Ichim - tiberiu.ichim@eaudeweb.ro]
 
-1.3-dev - (unreleased)
-----------------------
+1.3 - (2012-08-29)
+------------------
 * Bug fix: Push tags on github when releasing new eggs
   [voineali fixes #5486]
 
