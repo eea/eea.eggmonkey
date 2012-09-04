@@ -160,15 +160,15 @@ class Monkey():
         if not os.path.exists(manifest_path):
             f = open(manifest_path, 'w+')
 
-            f.write("global-exclude *pyc\nglobal-exclude *~\n" +
-                    "global-exclude *.un~\nglobal-include *mo")
+            f.write("global-exclude *.pyc\nglobal-exclude *~\n" +
+                    "global-exclude *.un~\nglobal-include *.mo")
             f.close()
             self.pkg_scm.add_and_commit(self.package_path, ['MANIFEST.in'])
         else:
             with open(manifest_path, 'a+') as f:
-                if not 'global-include *mo' in f.read():
+                if not 'global-include *.mo' in f.read():
                     f.seek(0)
-                    f.write("global-include *mo\n")
+                    f.write("\nglobal-include *.mo\n")
 
         find_lc_messages(self.package_path) #compile po files
 
