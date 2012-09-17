@@ -13,7 +13,7 @@ setup(name=name,
         version=version,
         description="Automate releasing eggs with jarn.mkrelease",
         long_description='\n'.join([
-            read('docs', 'README.txt'),
+            read('README.txt',),
             read('docs', 'HISTORY.txt'),
             ]),
         classifiers=[
