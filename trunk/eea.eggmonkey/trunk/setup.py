@@ -55,6 +55,9 @@ setup(name=name,
                 "print_pypi_plone_unreleased_eggs = eea.eggmonkey.pypi:print_pypi_plone_unreleased_eggs",
                 #"testpypi = eea.eggmonkey.simplepypi:main",
                 ],
+            "zc.buildout.extension":[
+                "cleanup_src = eea.eggmonkey.buildout:cleanup_src",
+                ]
             "zc.buildout.unloadextension":[
                 "monkey = eea.eggmonkey.buildout:learn",
                 ]

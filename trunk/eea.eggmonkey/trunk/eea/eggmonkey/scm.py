@@ -50,6 +50,22 @@ class SubversionSCM(GenericSCM):
 
         raise ValueError("Error when trying to get scm status")
 
+    def get_repo_url(self):
+        """
+        """
+        ret = subprocess.Popen(['git', 'config', '--get', 'remote.origin.url'], 
+                                stdout=subprocess.PIPE, cwd=self.path)
+        out, err = ret.communicate()
+
+        if ret.returncode == 0:
+            lines = out.splitlines()
+            for line in lines:
+                if line.startswith("URL:"):
+                    url = line.split("URL:")[1].strip()
+                    return url
+
+        raise ValueError("Error when trying to get repo url")
+
 
 class GitSCM(GenericSCM):
     """Implementation of git scm
@@ -103,6 +119,18 @@ class GitSCM(GenericSCM):
 
         raise ValueError("Error when trying to get scm status")
 
+    def get_repo_url(self):
+        """
+        """
+        ret = subprocess.Popen(['git', 'config', '--get', 'remote.origin.url'], 
+                                stdout=subprocess.PIPE, cwd=self.path)
+        out, err = ret.communicate()
+
+        if ret.returncode == 0:
+            return out.strip()
+
+        raise ValueError("Error when trying to get repo url")
+
 
 class MercurialSCM(GenericSCM):
     """Implementation of git scm
@@ -132,6 +160,18 @@ class MercurialSCM(GenericSCM):
             return bool(out.splitlines())
 
         raise ValueError("Error when trying to get scm status")
+
+    def get_repo_url(self):
+        """
+        """
+        ret = subprocess.Popen(['hg', 'paths', 'default'], 
+                                stdout=subprocess.PIPE, cwd=self.path)
+        out, err = ret.communicate()
+
+        if ret.returncode == 0:
+            retour out.strip()
+
+        raise ValueError("Error when trying to get repo url")
 
 
 def get_scm(path, no_net):
