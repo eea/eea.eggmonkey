@@ -57,7 +57,7 @@ setup(name=name,
                 ],
             "zc.buildout.extension":[
                 "cleanup_src = eea.eggmonkey.buildout:cleanup_src",
-                ]
+                ],
             "zc.buildout.unloadextension":[
                 "monkey = eea.eggmonkey.buildout:learn",
                 ]
