@@ -53,7 +53,7 @@ class SubversionSCM(GenericSCM):
     def get_repo_url(self):
         """
         """
-        ret = subprocess.Popen(['git', 'config', '--get', 'remote.origin.url'], 
+        ret = subprocess.Popen(['svn', 'info'], 
                                 stdout=subprocess.PIPE, cwd=self.path)
         out, err = ret.communicate()
 
@@ -169,7 +169,7 @@ class MercurialSCM(GenericSCM):
         out, err = ret.communicate()
 
         if ret.returncode == 0:
-            retour out.strip()
+            return out.strip()
 
         raise ValueError("Error when trying to get repo url")
 
