@@ -9,10 +9,13 @@ from zest.pocompile.compile import find_lc_messages
 import ConfigParser
 import argparse
 import cPickle
+import inspect
 import os
 import subprocess
 import sys
 
+Failure = object()
+Success = object()
 
 def print_msg(*msgs):
     if isinstance(msgs, (list, tuple)):
@@ -132,23 +135,44 @@ class Monkey():
             raise Error("Package has improperly filled metadata. Quiting")
 
     def do_step(self, func, step, description, interactive=False):
-        try:
-            func()
-        except Exception, e:
+        """Execute in a callable in a controlled situation.
 
-            if not interactive:
-                print_msg("Got an error on step %s, but we continue: <%s>" %
-                            (step, e))
-                print description
-                raise
+        If the callable fails due to an error, we interact with the user and
+        prompt what the solution should be: raise the error or return Failure,
+        which means that the callable has not succeded but we want to ignore
+        that problem
+        """
 
-            print_msg("Got an error on step %s" % step)
-            print description
-            print_msg("The error was: %s" % e)
-            a = raw_input("Should we continue? [y/N]")
+        a = 'r'
 
-            if not(a.strip() and a.strip().lower()[0] == 'y'):
-                raise
+        while a == 'r':
+
+            try:
+                func()
+                break
+            except Exception, e:
+
+                if not interactive:
+                    print_msg('Got error "%s" on step %s and we abort' % (e, step))
+                    print_msg("We were doing: %s" % description)
+                    raise
+
+                print_msg('Got error "%s" on step %s' % (e, step))
+                print_msg("We were doing: %s" % description)
+
+                a = 'X'
+                while a.lower() not in 'ari':
+                    a = raw_input("[A]bort, [R]etry, [I]gnore? ").lower().strip()
+     
+                if a == 'i':
+                    return Failure
+                elif a == 'a':
+                    print e
+                    sys.exit(1)
+                else:
+                    a = 'r'
+
+        return Success
 
     def release(self):
         self.check_package_sanity()
@@ -159,12 +183,18 @@ class Monkey():
             step(n, description)
 
     def step_1(self, step, description):
+        """Bump the version in the version.txt file
+        """
         self.do_step(lambda:bump_version(self.package_path), step, description)
 
     def step_2(self, step, description):
+        """Bump the version in the HISTORY.txt file
+        """
         self.do_step(lambda:bump_history(self.package_path), step, description)
 
     def step_3(self, step, description):
+        """Fix the MANIFEST.in file, compile po files and fix setup.cfg file
+        """
         # Fix the MANIFEST.in file
         manifest_path = os.path.join(self.package_path, 'MANIFEST.in')
         if not os.path.exists(manifest_path):
@@ -186,7 +216,7 @@ class Monkey():
         # If there's a setup.cfg file, we might get strange version so 
         # we change it here and again after the package release
         if 'setup.cfg' in os.listdir(self.package_path):
-            print_msg("Changing setup.cfg to fit manual upload")
+            print_msg("Changing setup.cfg so we won't release a revision egg")
             f = open(os.path.join(self.package_path, 'setup.cfg'), 'rw+')
             b = []
             for l in f.readlines():
@@ -204,17 +234,18 @@ class Monkey():
             f.close()
 
     def step_4(self, step, description):
-        domains = list(chain(*[('-d', d) for d in self.domain]))
-        cmd = [self.mkrelease, "-qp"] + domains
+        cmd = list(chain(*([(self.mkrelease, "-qp")] + 
+                                    [('-d', d) for d in self.domain])))
 
+        status = None
         if not self.no_net:
             print EXTERNAL + " ".join(cmd)
-            self.do_step(lambda:subprocess.check_call(cmd, cwd=self.package_path),
+            status = self.do_step(lambda:subprocess.check_call(cmd, cwd=self.package_path),
                     step, description, interactive=True)
         else:
             print_msg("Fake operation: ", " ".join(cmd))
 
-        if self.manual_upload:
+        if status is Failure:
             for domain in self.domain:
                 cmd = self.python + \
                         ' setup.py -q sdist --formats zip upload -r ' + domain
@@ -282,7 +313,7 @@ def check_global_sanity(args, config):
     if not os.path.exists("versions.cfg"):
         raise Error("versions.cfg file was not found. Quiting.")
 
-    def _check(domain, manual_upload, mkrelease, python):
+    def _check(domain, mkrelease, python):
 
         #check if mkrelease can be found
         if ((mkrelease, python) != (None, None)) and (mkrelease == python):
@@ -294,25 +325,18 @@ def check_global_sanity(args, config):
         #we check if this python has setuptools installed
         #we need to redirect stderr to a file, I see no cleaner
         #way to achieve this
-        if (manual_upload != None) and manual_upload:
-            err = open('_test_setuptools', 'wr+')
-            cmd = [python, '-m', 'setuptools']
-            exit_code = subprocess.call(cmd, stderr=err, stdout=err)
-            err.seek(0)
-            output = err.read()
+        err = open('_test_setuptools', 'wr+')
+        cmd = [python, '-m', 'setuptools']
+        exit_code = subprocess.call(cmd, stderr=err, stdout=err)
+        err.seek(0)
+        output = err.read()
 
-            if "setuptools is a package and cannot be directly executed" \
-                    not in output:
-                raise Error("The specified Python doesn't have setuptools")
-
-        #we don't support manual upload with multiple repositories
-        if (manual_upload != None) and manual_upload and len(domain) > 1:
-            raise Error("Can't have multiple repositories when doing a "
-                        "manual upload")
+        if "setuptools is a package and cannot be directly executed" \
+                not in output:
+            raise Error("The specified Python doesn't have setuptools")
 
     tocheck = [('default', {
         'domain':args.domain,
-        'manual_upload':args.manual_upload,
         'mkrelease':args.mkrelease,
         'python':args.python,
     })]
@@ -322,9 +346,6 @@ def check_global_sanity(args, config):
             tocheck.append((section, {
                 'domain':get_config(config, "domain", "",
                                     section=section).split() or [],
-                'manual_upload':(get_config(config, "manual_upload",
-                                None, 'getboolean', section) in (False, True))
-                                or args.manual_upload,
                 'mkrelease':get_config(config, "mkrelease", None,
                                     section=section) or args.mkrelease,
                 'python':get_config(config, "python", None,
