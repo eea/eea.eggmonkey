@@ -5,6 +5,9 @@ import re
 import subprocess
 
 
+ignore_patterns = [".*dist$", ".*egg-info$"]
+
+
 class GenericSCM(object):
     """Base SCM class
     """
@@ -41,8 +44,6 @@ class SubversionSCM(GenericSCM):
         ret = subprocess.Popen(['svn', 'status', '.'], 
                                 stdout=subprocess.PIPE, cwd=self.path)
         out, err = ret.communicate()
-
-        ignore_patterns = [".*dist", ".*egg-info"]
 
         if ret.returncode == 0:
             flag = False
