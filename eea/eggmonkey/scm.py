@@ -1,7 +1,11 @@
 from eea.eggmonkey.utils import EXTERNAL
 from itertools import chain
 import os
+import re
 import subprocess
+
+
+ignore_patterns = [".*dist$", ".*egg-info$"]
 
 
 class GenericSCM(object):
@@ -42,11 +46,16 @@ class SubversionSCM(GenericSCM):
         out, err = ret.communicate()
 
         if ret.returncode == 0:
-            lines = out.splitlines()
-            if len(lines) == 1 and lines[0].startswith("?") and \
-                        lines[0].endswith("dist"):
-                return False
-            return bool(out.splitlines())
+            flag = False
+            for l in out.splitlines():
+                matches = 0
+                for r in ignore_patterns:
+                    if re.search(r, l):
+                        matches += 1
+                if matches == 0:
+                    flag = True
+                        
+            return flag
 
         raise ValueError("Error when trying to get scm status")
 
