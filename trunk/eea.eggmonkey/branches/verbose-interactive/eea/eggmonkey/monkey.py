@@ -147,7 +147,7 @@ class Monkey():
             print_msg("The error was: %s" % e)
             a = raw_input("Should we continue? [y/N]")
 
-            if not(a.strip() and a.strip().lower()[0] = 'y'):
+            if not(a.strip() and a.strip().lower()[0] == 'y'):
                 raise
 
     def release(self):

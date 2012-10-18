@@ -35,8 +35,10 @@ def cleanup_src(buildout):
     for pkg, info in sources.items():
         path = info['path']
         url = info['url']
+        if not os.path.exists(path):
+            continue
         scm = get_scm(path, False)
         if scm.get_repo_url() != url:
             if not scm.is_dirty():
-                print "EGGMONKEY: erasing %s as it has an outdated repo path"
-                shutils.rmtree(path, ignore_errors=True)
+                print "EGGMONKEY: erasing %s as it has an outdated repo path" % pkg
+                shutil.rmtree(path, ignore_errors=True)
