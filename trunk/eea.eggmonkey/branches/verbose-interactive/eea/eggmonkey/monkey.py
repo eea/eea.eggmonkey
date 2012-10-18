@@ -4,6 +4,7 @@ from eea.eggmonkey.history import FileHistoryParser, bump_history
 from eea.eggmonkey.scm import get_scm
 from eea.eggmonkey.utils import Error, EGGMONKEY, EXTERNAL, find_file, which
 from eea.eggmonkey.version import change_version, bump_version, get_version
+from itertools import chain
 from zest.pocompile.compile import find_lc_messages
 import ConfigParser
 import argparse
@@ -30,7 +31,9 @@ def get_buildout():
 
 
 class Monkey():
-    """A package release monkey"""
+    """A single package release utility. 
+    
+    It does the jobs nobody else wants to do by hand."""
 
     #used during releasing process
     tag_build = None
@@ -55,26 +58,25 @@ class Monkey():
 
         self.python = get_config(config, "python", args.python, section=package)
 
-        self.domain = get_config(config, "domain", None, section=package)
-        if not self.domain:
-            self.domain = ['eea']
+        self.domain = get_config(config, "domain", None, section=package) or ['eea']
         self.domain = args.domain or self.domain
-
         if isinstance(self.domain, basestring):
             self.domain = [self.domain]
 
-        self.manual_upload = get_config(config, "manual_upload",
-                                        args.manual_upload, section=package)
-        self.mkrelease = get_config(config, "mkrelease", args.mkrelease,
+        self.interactive = get_config(config, "interactive",
+                                        args.interactive, section=package)
+        self.verbose     = get_config(config, "verbose",
+                                        args.interactive, section=package)
+        self.mkrelease   = get_config(config, "mkrelease", args.mkrelease,
                                         section=package)
 
         self.no_net = args.no_network
 
         self.package_path = package_path = sources[package]['path']
-        self.pkg_scm = get_scm(package_path, self.no_net)
+        self.pkg_scm      = get_scm(package_path, self.no_net)
 
-        self.build_path = os.getcwd()
-        self.build_scm = get_scm(self.build_path, self.no_net)
+        self.build_path   = os.getcwd()
+        self.build_scm    = get_scm(self.build_path, self.no_net)
 
         self.instructions = filter(None, map(lambda s:s.strip(),
                                     self._instructions.splitlines()))
@@ -129,16 +131,23 @@ class Monkey():
         except subprocess.CalledProcessError:
             raise Error("Package has improperly filled metadata. Quiting")
 
-    def do_step(self, func, step, description, ignore_error=False):
+    def do_step(self, func, step, description, interactive=False):
         try:
             func()
         except Exception, e:
-            if ignore_error:
+
+            if not interactive:
                 print_msg("Got an error on step %s, but we continue: <%s>" %
                             (step, e))
                 print description
-                return
-            else:
+                raise
+
+            print_msg("Got an error on step %s" % step)
+            print description
+            print_msg("The error was: %s" % e)
+            a = raw_input("Should we continue? [y/N]")
+
+            if not(a.strip() and a.strip().lower()[0] = 'y'):
                 raise
 
     def release(self):
@@ -156,6 +165,7 @@ class Monkey():
         self.do_step(lambda:bump_history(self.package_path), step, description)
 
     def step_3(self, step, description):
+        # Fix the MANIFEST.in file
         manifest_path = os.path.join(self.package_path, 'MANIFEST.in')
         if not os.path.exists(manifest_path):
             f = open(manifest_path, 'w+')
@@ -170,40 +180,37 @@ class Monkey():
                     f.seek(0)
                     f.write("\nglobal-include *.mo\n")
 
-        find_lc_messages(self.package_path) #compile po files
+        #compile po files
+        find_lc_messages(self.package_path) 
 
-        if self.manual_upload:
-            # when doing manual upload, if there's a setup.cfg file,
-            # we might get strange version so we change it here and
-            # again after the package release
-            if 'setup.cfg' in os.listdir(self.package_path):
-                print_msg("Changing setup.cfg to fit manual upload")
-                f = open(os.path.join(self.package_path, 'setup.cfg'), 'rw+')
-                b = []
-                for l in f.readlines():
-                    l = l.strip()
-                    if l.startswith("tag_build"):
-                        self.tag_build = l
-                        b.append("tag_build = ")
-                    elif l.startswith("tag_svn_revision"):
-                        self.tag_svn_revision = l
-                        b.append("tag_svn_revision = false")
-                    else:
-                        b.append(l)
-                f.seek(0); f.truncate(0)
-                f.write("\n".join(b))
-                f.close()
+        # If there's a setup.cfg file, we might get strange version so 
+        # we change it here and again after the package release
+        if 'setup.cfg' in os.listdir(self.package_path):
+            print_msg("Changing setup.cfg to fit manual upload")
+            f = open(os.path.join(self.package_path, 'setup.cfg'), 'rw+')
+            b = []
+            for l in f.readlines():
+                l = l.strip()
+                if l.startswith("tag_build"):
+                    self.tag_build = l
+                    b.append("tag_build = ")
+                elif l.startswith("tag_svn_revision"):
+                    self.tag_svn_revision = l
+                    b.append("tag_svn_revision = false")
+                else:
+                    b.append(l)
+            f.seek(0); f.truncate(0)
+            f.write("\n".join(b))
+            f.close()
 
     def step_4(self, step, description):
-        domains = []
-        for d in self.domain:
-            domains.extend(['-d', d])
+        domains = list(chain(*[('-d', d) for d in self.domain]))
         cmd = [self.mkrelease, "-qp"] + domains
 
         if not self.no_net:
             print EXTERNAL + " ".join(cmd)
             self.do_step(lambda:subprocess.check_call(cmd, cwd=self.package_path),
-                    step, description, ignore_error=self.manual_upload)
+                    step, description, interactive=True)
         else:
             print_msg("Fake operation: ", " ".join(cmd))
 
@@ -370,15 +377,26 @@ def main(*a, **kw):
     cmd = argparse.ArgumentParser(
             u"Eggmonkey: easy build and release of eggs\n")
 
+    cmd.add_argument('-v', "--verbose",
+            action='store_const', const=True, default=False,
+            help=u"Verbose. Will display content of external commands output")
+
     cmd.add_argument('-n', "--no-network",
             action='store_const', const=True, default=False,
             help=u"Don't run network operations")
 
-    cmd.add_argument('-u', "--manual-upload", action='store_const',
-            const=True, default=get_config(config, "manual_upload",
+    cmd.add_argument('-i', "--interactive", action='store_const',
+            const=True, default=get_config(config, "interactive",
                                             True, 'getboolean'),
-            help=u"Manually upload package to eggrepo. Runs an extra " +
-                 u"upload step to ensure package is uploaded on eggrepo.")
+            help=u"Set interactivity level to interactive. When set, "
+                 u"the eggmonkey will ask for confirmation in case "
+                 u"there are errors."
+         )
+    cmd.add_argument('-I', "--noninteractive", action='store_const',
+            const=True, default=get_config(config, "interactive",
+                                            False, 'getboolean'),
+            help=u"Set interactivity level to non-interactive. "
+         )
 
     cmd.add_argument('-a', "--autocheckout", action='store_const', const=True,
             default=False, help=u"Process all eggs in autocheckout")
@@ -475,15 +493,14 @@ def devify(*a, **kw):
     for package in packages:
         package_path = sources[package]['path']
         parser = FileHistoryParser(package_path)
-        changed = parser._make_dev()
+        has_changed = parser._make_dev()
         version = parser.get_current_version()
         version_file = find_file(package_path, 'version.txt')
         with open(version_file, 'w') as f:
             f.write(version)
 
-        if changed:
+        if has_changed:
             print "Changed version to -dev for package", package
         else:
             print "Package", package, " already at -dev"
 
-        version
