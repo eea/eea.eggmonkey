@@ -39,6 +39,7 @@ setup(name=name,
             'collective.dist',
             'jarn.mkrelease',
             'zest.pocompile',
+            'yolk',
 
             #anyvc and its required support for repositories
             #'anyvc',
@@ -51,6 +52,7 @@ setup(name=name,
             "console_scripts":[
                 "monkey = eea.eggmonkey.monkey:main" ,
                 "devify = eea.eggmonkey.monkey:devify" ,
+                "check_latest = eea.eggmonkey.buildout:check_latest" ,
                 "print_unreleased_packages = eea.eggmonkey.pypi:print_unreleased_packages" ,
                 "print_pypi_plone_unreleased_eggs = eea.eggmonkey.pypi:print_pypi_plone_unreleased_eggs",
                 #"testpypi = eea.eggmonkey.simplepypi:main",
