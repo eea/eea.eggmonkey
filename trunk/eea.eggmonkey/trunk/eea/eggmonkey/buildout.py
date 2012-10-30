@@ -77,7 +77,7 @@ def check_latest():
                 v[name.strip()] = version.strip()
 
     with open(".skipped_packages") as f:
-        skipped = [x.strip() for x in f.readlines()]
+        skipped = [x.strip() for x in f.readlines() if x.strip()]
 
     picked_versions = v
     pypi = CheeseShop()
