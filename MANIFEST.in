@@ -1,1 +1,3 @@
 global-include *mo
+
+global-include *.mo
