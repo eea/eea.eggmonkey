@@ -2,8 +2,8 @@ Changelog
 =========
 [Tiberiu Ichim - tiberiu.ichim@eaudeweb.ro]
 
-1.4-dev - (unreleased)
-----------------------
+1.4 - (2012-11-20)
+------------------
 * Bug fix: add a newline in generated MANIFEST.in
   [tiberich refs #5493]
 
