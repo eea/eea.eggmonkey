@@ -4,6 +4,9 @@ Changelog
 
 1.5-dev - (unreleased)
 ----------------------
+* Bug fix: improve history parsing when no empty lines are left between
+  version sections
+  [tiberich refs #10000]
 
 1.4 - (2012-11-20)
 ------------------
