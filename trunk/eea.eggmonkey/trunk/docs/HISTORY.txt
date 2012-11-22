@@ -2,6 +2,9 @@ Changelog
 =========
 [Tiberiu Ichim - tiberiu.ichim@eaudeweb.ro]
 
+1.6-dev - (unreleased)
+----------------------
+
 1.5 - (2012-11-22)
 ------------------
 * Bug fix: improve history parsing when no empty lines are left between
