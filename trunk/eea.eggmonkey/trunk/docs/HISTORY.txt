@@ -4,6 +4,8 @@ Changelog
 
 1.6-dev - (unreleased)
 ----------------------
+* Bug fix: fixed /src cleanup when repo source ends with /
+  [ghicaale refs #9527]
 
 1.5 - (2012-11-22)
 ------------------
