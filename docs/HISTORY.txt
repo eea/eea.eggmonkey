@@ -2,8 +2,8 @@ Changelog
 =========
 [Tiberiu Ichim - tiberiu.ichim@eaudeweb.ro]
 
-1.6-dev - (unreleased)
-----------------------
+1.6 - (2012-11-22)
+------------------
 * Bug fix: fixed /src cleanup when repo source ends with /
   [ghicaale refs #9527]
 
