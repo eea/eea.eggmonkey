@@ -9,13 +9,11 @@ import sys
 import urllib2
 import xmlrpclib
 
-
 def learn(buildout):
-    """Learn about the buildout
-    
-    We are interested in reading and caching the sources section of the buildout 
+    """ Learn about the buildout
+    We are interested in reading and caching the sources section of the buildout
     """
-    
+
     import zc.buildout.easy_install as ez
     picked_versions = ez.Installer.__picked_versions
 
@@ -33,9 +31,8 @@ def learn(buildout):
     cPickle.dump([sources, autocheckout], out)
     out.close()
 
-
 def cleanup_src(buildout):
-    """We want to erase folders in src for which the source path is out of date
+    """ We want to erase folders in src for which the source path is out of date
     """
     mrdeveloper = Extension(buildout)
     sources = mrdeveloper.get_sources()
@@ -51,14 +48,15 @@ def cleanup_src(buildout):
         if not os.path.exists(path):
             continue
         scm = get_scm(path, False)
+        if url.endswith('/'):
+            url = url[:-1]
         if scm.get_repo_url() != url:
             if not scm.is_dirty():
                 print "EGGMONKEY: erasing %s as it has an outdated repo path" % pkg
                 shutil.rmtree(path, ignore_errors=True)
 
-
 class AuthTransport(ProxyTransport):
-    """Authenticated transport
+    """ Authenticated transport
     """
 
     def __init__(self, username, password):
@@ -83,10 +81,9 @@ class AuthTransport(ProxyTransport):
         opener = urllib2.build_opener(proxy_handler)
         fhandle = opener.open(request)
         return(self.parse_response(fhandle))
-     
 
 class EEAEggRepo(CheeseShop):
-    """eea eggrepo
+    """ eea eggrepo
     """
 
     def get_xmlrpc_server(self):
@@ -100,7 +97,7 @@ class EEAEggRepo(CheeseShop):
 
         username = raw_input("Enter username for %s: " % URL)
         password = getpass.getpass("Enter password: ")
-        
+
         try:
             return xmlrpclib.Server(URL, 
                                 transport=AuthTransport(username, password), 
@@ -108,7 +105,6 @@ class EEAEggRepo(CheeseShop):
         except IOError:
             self.logger("ERROR: Can't connect to XML-RPC server: %s" \
                     % XML_RPC_SERVER)
-
 
 def check_latest():
     """
@@ -166,9 +162,8 @@ def check_latest():
         if latest != v:
             print "Package %s - %s" % (name, v), " has a new version: ", latest
             flag = 1
-            
-    sys.exit(flag)
 
+    sys.exit(flag)
 
 def check_version_files():
     pass
