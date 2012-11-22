@@ -21,13 +21,14 @@ class HistoryParser(object):
                             l and 
                             (l[0].isdigit() or 
                             (l[0] == 'r' and l[1].isdigit())
-                        ))
+                        ))  #version header lines start with a number
 
         is_last_line_in_file = lambda n: n == (len(split_original) - 1)
         is_underlined = lambda n:(len(split_original) - n) >= 2 and \
+                                 split_original[n+1].strip() and \
                                  split_original[n+1].strip()[0] in "-=~^"
         get_lines = lambda start, end:filter(lambda li:li.strip(), 
-                                             split_original[start:end])
+                                             split_original[start:end+1])
 
         for lineno, line in enumerate(split_original):
             if is_version_header_line(line):

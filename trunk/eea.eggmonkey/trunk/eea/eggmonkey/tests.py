@@ -49,6 +49,20 @@ r235 - (7-20-2008)
  r3457 - entry D
  * entry E
 
+ """
+
+H3 = """Changelog
+==========
+1.1 - (10-20-2008)
+------------------
+ * some entry
+1.0 - (10-19-2008)
+------------------
+ * something
+ * or other
+0.9 - (9-20-2008)
+-----------------
+ * and something else
 """
 
 
@@ -93,17 +107,13 @@ class MonkeyTestCase(unittest.TestCase):
         assert len(es[1]) == 4
         assert len(es[2]) == 3
 
-    #def test_release(self):
-        #packages = os.path.join(os.path.dirname(__file__), '../packages/')
-        #pypi = os.path.join(os.path.dirname(__file__), 'simplepypi.py')
-        #python = sys.executable
-        #pythonpath = filter(lambda x:'/usr/lib/' not in x, sys.path)
-        #proc = subprocess.Popen([python, pypi], env={"PYTHONPATH":":".join(pythonpath)})
-        #time.sleep(2)
-
-        #shutil.copytree
-
-        #proc.kill()
+        hp = HistoryParser(H3)
+        es = hp.entries
+        assert len(es) == 3
+        assert len(es[0]) == 3
+        assert len(es[1]) == 4
+        assert len(es[2]) == 3
+        
 
 def test_suite():
     suite = unittest.TestLoader().loadTestsFromTestCase(MonkeyTestCase)
