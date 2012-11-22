@@ -2,8 +2,8 @@ Changelog
 =========
 [Tiberiu Ichim - tiberiu.ichim@eaudeweb.ro]
 
-1.5-dev - (unreleased)
-----------------------
+1.5 - (2012-11-22)
+------------------
 * Bug fix: improve history parsing when no empty lines are left between
   version sections
   [tiberich refs #10000]
