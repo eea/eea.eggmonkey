@@ -65,6 +65,14 @@ H3 = """Changelog
  * and something else
 """
 
+H4 = """\xefChangelog
+==========
+
+1.0 - (10-20-2008)
+------------------
+ * some entry
+
+"""
 
 class MonkeyTestCase(unittest.TestCase):
 
@@ -113,6 +121,12 @@ class MonkeyTestCase(unittest.TestCase):
         assert len(es[0]) == 3
         assert len(es[1]) == 4
         assert len(es[2]) == 3
+
+    def test_bom(self):
+        """sometimes file start with a BOM, we strip it
+        """
+        hp = HistoryParser(H4)
+        assert hp.file_header[0][0] != 'xef'
         
 
 def test_suite():

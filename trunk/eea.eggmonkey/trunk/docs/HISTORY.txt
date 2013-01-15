@@ -4,6 +4,10 @@ Changelog
 
 1.7-dev - (unreleased)
 ----------------------
+* Bug fix: strip BOM from first character in file
+  [tiberich]
+* Bug fix: don't abort if failing to install collective.dist
+  [tiberich]
 
 1.6 - (2012-11-22)
 ------------------
