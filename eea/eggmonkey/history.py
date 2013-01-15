@@ -13,8 +13,8 @@ class HistoryParser(object):
         self.file_header   = []
         self.entries  = []
         split_original = original.splitlines()
-        split_original = [lambda c:"".join([c for c in L if c !='\xef'])(L) 
-                          for L in split_originals]
+        filter_xef = lambda c:"".join([c for c in L if c !='\xef'])
+        split_original = [filter_xef(L) for L in split_original]
         section_start = None
         section_end   = None
         is_file_header = True
