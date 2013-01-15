@@ -2,6 +2,9 @@ Changelog
 =========
 [Tiberiu Ichim - tiberiu.ichim@eaudeweb.ro]
 
+1.8-dev - (unreleased)
+----------------------
+
 1.7 - (2013-01-15)
 ------------------
 * Bug fix: strip BOM from first character in file
