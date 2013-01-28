@@ -4,6 +4,8 @@ Changelog
 
 1.8-dev - (unreleased)
 ----------------------
+* Bug fix: added info about what fields are required in package metadata
+  [tiberich]
 
 1.7 - (2013-01-15)
 ------------------
