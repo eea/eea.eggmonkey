@@ -2,8 +2,8 @@ Changelog
 =========
 [Tiberiu Ichim - tiberiu.ichim@eaudeweb.ro]
 
-1.8-dev - (unreleased)
-----------------------
+1.8 - (2013-01-28)
+------------------
 * Bug fix: added info about what fields are required in package metadata
   [tiberich]
 
