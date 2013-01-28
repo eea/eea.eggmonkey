@@ -133,6 +133,12 @@ class Monkey():
             cmd = self.python + " setup.py check --strict"
             subprocess.check_call(cmd, cwd=self.package_path, shell=True)
         except subprocess.CalledProcessError:
+            print "Make sure that the package following metadata filled in:"
+            print " - name"
+            print " - version"
+            print " - url" 
+            print " - author and author_email"
+            print " - maintainer and maintainer_email"
             raise Error("Package has improperly filled metadata. Quiting")
 
     def do_step(self, func, step, description, interactive=False):
