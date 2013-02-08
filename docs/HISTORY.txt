@@ -2,6 +2,9 @@ Changelog
 =========
 [Tiberiu Ichim - tiberiu.ichim@eaudeweb.ro]
 
+2.0-dev - (unreleased)
+----------------------
+
 1.9 - (2013-02-08)
 ------------------
 * Bug fix: don't fail if incompatible version of zc.buildout is used
