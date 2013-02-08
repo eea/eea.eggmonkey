@@ -8,6 +8,9 @@ import shutil
 import sys
 import urllib2
 import xmlrpclib
+import logging
+
+logger = logging.getLogger("eea.eggmonkey")
 
 def learn(buildout):
     """ Learn about the buildout
@@ -15,7 +18,13 @@ def learn(buildout):
     """
 
     import zc.buildout.easy_install as ez
-    picked_versions = ez.Installer.__picked_versions
+    try:
+        picked_versions = ez.Installer.__picked_versions
+    except AttributeError:  #incompatible version of zc.buildout
+        logger.info("Incompatible version of zc.buildout for cleanup "
+                    "sources action of eea.eggmonkey. "
+                    "You can usually ignore this message")
+        picked_versions = {}
 
     with open(".picked_versions.cfg", "w") as f:
         f.write("[versions]\n")
