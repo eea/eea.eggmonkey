@@ -4,6 +4,9 @@ Changelog
 
 1.9-dev - (unreleased)
 ----------------------
+* Bug fix: don't fail if incompatible version of zc.buildout is used
+  This is used in the clean sources folder
+  [tiberich]
 
 1.8 - (2013-01-28)
 ------------------
