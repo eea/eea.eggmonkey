@@ -29,7 +29,7 @@ example:
 
 [buildout]
 
-extensions = 
+extensions =
     mr.developer
     eea.eggmonkey
 
@@ -55,7 +55,7 @@ This allows eggmonkey to learn about the sources and the packages in
 auto-checkout.
 
 After that, you can use the monkey script from bin. Learn about its parameters
-by running 
+by running
 
     ``bin/monkey -h``
 
@@ -66,7 +66,7 @@ Typical usage would be:
 You can specify multiple packages on the command line, they will all be
 processed:
 
-    ``bin/monkey eea.indicators eea.workflow eea.version
+    ``bin/monkey eea.indicators eea.workflow eea.version``
 
 Or, if you want to release all eggs specified in the auto-checkout section of
 buildout:
@@ -98,7 +98,7 @@ manually specify this using the -d switch:
 
     ``bin/monkey -d eeaeggs eea.indicators``
 
-If you want to forbid all network operations (for example, 
+If you want to forbid all network operations (for example,
 during testing), you can run
 
     ``bin/monkey -n eea.indicators``
