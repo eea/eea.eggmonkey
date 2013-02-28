@@ -4,6 +4,8 @@ Changelog
 
 2.0-dev - (unreleased)
 ----------------------
+* Some code cleanup
+  [tiberich]
 
 1.9 - (2013-02-08)
 ------------------
