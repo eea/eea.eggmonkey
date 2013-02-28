@@ -55,6 +55,8 @@ class Monkey():
     #9. Update history file. Add Unreleased section
     #10. SVN commit the dev version of the package.
     """ #this needs to be updated everytime steps are modified
+    _dummy = """
+    """
 
     def __init__(self, package, sources, args, config):
         self.package = package
@@ -88,6 +90,9 @@ class Monkey():
         #if self.pkg_scm.is_dirty():
             #raise Error("Package is dirty. Quiting")
 
+        if not os.path.exists(self.package_path):
+            raise Error("Path %s is invalid, quiting." % self.package_path)
+
         # check if we have hardcoded version in setup.py
         # this is a dumb but hopefully effective method: we look for a line
         # starting with version= and fail if there's a number on it
@@ -99,9 +104,6 @@ class Monkey():
                 if c.isdigit():
                     raise Error("There's a hardcoded version in the "
                                 "setup.py file. Quiting.")
-
-        if not os.path.exists(self.package_path):
-            raise Error("Path %s is invalid, quiting." % self.package_path)
 
         vv = get_version(self.package_path)
         vh = FileHistoryParser(self.package_path).get_current_version()
@@ -247,8 +249,9 @@ class Monkey():
         status = None
         if not self.no_net:
             print EXTERNAL + " ".join(cmd)
-            status = self.do_step(lambda:subprocess.check_call(cmd, cwd=self.package_path),
-                    step, description, interactive=True)
+            status = self.do_step(lambda:subprocess.check_call(cmd, 
+                                                       cwd=self.package_path),
+                                  step, description, interactive=True)
         else:
             print_msg("Fake operation: ", " ".join(cmd))
 
