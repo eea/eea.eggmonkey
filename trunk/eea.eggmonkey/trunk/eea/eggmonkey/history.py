@@ -161,6 +161,8 @@ class FileHistoryParser(HistoryParser):
             self._create_dev_section()
             self.write()
             return True
+        else:
+            raise ValueError("HISTORY.txt is not at -dev")
 
         return False
 

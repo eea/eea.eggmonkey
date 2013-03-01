@@ -33,6 +33,31 @@ def get_buildout():
     return buildout
 
 
+def bump_pkg(pkg_path, final=True):
+    """Bump both version files (history+version.txt) for a package
+    """
+
+    hp = FileHistoryParser(pkg_path)
+    import pdb; pdb.set_trace()
+    hp.bump_version()
+    bump_version(pkg_path)
+
+    vh = hp.get_current_version()
+    vv = get_version(pkg_path)
+
+    check_final = lambda x, final: (final and ('dev' not in x)) or \
+                                   ((not final) and ('dev' in x))
+    check_versions = lambda x,y, final: (x == y) and check_final(x, final)
+
+    if not check_versions(vv, vh, final):
+        f = final and 'final' or 'devel'
+        print_msg("There is something wrong with package version when "
+                  "trying to bump to ", f)
+        print_msg("HISTORY.txt version is at", vh) 
+        print_msg("version.txt version is at", vv) 
+        sys.exit(1)
+
+
 class Monkey():
     """A single package release utility. 
     
@@ -44,16 +69,14 @@ class Monkey():
 
 
     _instructions = """
-    #1. Bump version.txt to correct version; from -dev to final
-    #2. Update history file with release date; Record final release date
-    #3. Prepare the package for release
-    #4. Run "mkrelease -qp -d eea" in package dir; (Optional) Run "python setup.py sdist upload -r eea"
-    #5. Update versions.cfg file in buildout: svn up eea-buildout/versions.cfg
-    #6. Change version for package in eea-buildout/versions.cfg
-    #7. Commit versions.cfg file: svn commit versions.cfg
-    #8. Bump package version file; From final to +1-dev
-    #9. Update history file. Add Unreleased section
-    #10. SVN commit the dev version of the package.
+    #1. Bump version.txt to correct version; from -dev to final. Update history file with release date; Record final release date
+    #2. Prepare the package for release
+    #3. Run "mkrelease -qp -d eea" in package dir; (Optional) Run "python setup.py sdist upload -r eea"
+    #4. Update versions.cfg file in buildout: svn up eea-buildout/versions.cfg
+    #5. Change version for package in eea-buildout/versions.cfg
+    #6. Commit versions.cfg file: svn commit versions.cfg
+    #7. Bump package version file; From final to +1-dev. Update history file. Add Unreleased section
+    #8. SVN commit the dev version of the package.
     """ #this needs to be updated everytime steps are modified
     _dummy = """
     """
@@ -108,6 +131,7 @@ class Monkey():
         vv = get_version(self.package_path)
         vh = FileHistoryParser(self.package_path).get_current_version()
 
+        import pdb; pdb.set_trace()
         if not "-dev" in vv:
             raise Error("Version.txt file is not at -dev. Quiting.")
 
@@ -190,18 +214,22 @@ class Monkey():
                 map(lambda x:(x[0]+1, x[1]), enumerate(self.instructions)):
             step = getattr(self, 'step_%s' % n)
             step(n, description)
+            if self.verbose:
+                import pdb; pdb.set_trace()
 
     def step_1(self, step, description):
         """Bump the version in the version.txt file
         """
-        self.do_step(lambda:bump_version(self.package_path), step, description)
+        bump = lambda:bump_pkg(self.package_path, final=True)
+        commit = lambda:self.pkg_scm.commit(
+                                message="Bump version and history file")
+        do = lambda:bump() and commit()
+        self.do_step(do, step, description, interactive=True)
+        if self.verbose:
+            vv = get_version(self.package_path)
+            print_msg("Bumped version to ", vv)
 
     def step_2(self, step, description):
-        """Bump the version in the HISTORY.txt file
-        """
-        self.do_step(lambda:bump_history(self.package_path), step, description)
-
-    def step_3(self, step, description):
         """Fix the MANIFEST.in file, compile po files and fix setup.cfg file
         """
         # Fix the MANIFEST.in file
@@ -242,7 +270,9 @@ class Monkey():
             f.write("\n".join(b))
             f.close()
 
-    def step_4(self, step, description):
+            #TODO: commit here
+
+    def step_3(self, step, description):
         cmd = list(chain(*([(self.mkrelease, "-qp")] + 
                                     [('-d', d) for d in self.domain])))
 
@@ -284,30 +314,33 @@ class Monkey():
                 f.write("\n".join(b))
                 f.close()
 
-    def step_5(self, step, description):
+    def step_4(self, step, description):
         self.do_step(lambda:self.build_scm.update(['versions.cfg']),
                      step, description)
 
-    def step_6(self, step, description):
+    def step_5(self, step, description):
         version = get_version(self.package_path)
         version_path = os.path.join(self.build_path, 'versions.cfg')
         self.do_step(lambda:change_version(path=version_path,
                                package=self.package, version=version),
                      step, description)
 
-    def step_7(self, step, description):
+    def step_6(self, step, description):
         version = get_version(self.package_path)
         self.do_step(lambda:self.build_scm.commit(paths=["versions.cfg"],
              message='Updated %s to %s' % (self.package, version)),
              step, description)
 
+    def step_7(self, step, description):
+        bump = lambda:bump_pkg(self.package_path, final=False)
+        commit = lambda:self.pkg_scm.commit(
+                                message="Bump version and history file")
+        do = lambda:bump() and commit()
+        self.do_step(do, step, description, interactive=True)
+        if self.verbose:
+            print_msg("Bumped version to ", vv)
+
     def step_8(self, step, description):
-        self.do_step(lambda:bump_version(self.package_path), step, description)
-
-    def step_9(self, step, description):
-        self.do_step(lambda:bump_history(self.package_path), step, description)
-
-    def step_10(self, step, description):
         version = get_version(self.package_path)
         self.do_step(
             lambda:self.pkg_scm.commit([],
