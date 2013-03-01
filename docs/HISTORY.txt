@@ -4,8 +4,8 @@ Changelog
 
 2.0-dev - (unreleased)
 ----------------------
-* Some code cleanup
-  [tiberich]
+* Bug fix: commit version.txt and history.txt before releasing package
+  [tiberich #13987]
 
 1.9 - (2013-02-08)
 ------------------
