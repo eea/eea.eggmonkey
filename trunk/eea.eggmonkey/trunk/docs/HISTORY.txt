@@ -2,8 +2,8 @@ Changelog
 =========
 [Tiberiu Ichim - tiberiu.ichim@eaudeweb.ro]
 
-2.0-dev - (unreleased)
-----------------------
+2.0 - (2013-03-06)
+------------------
 * Bug fix: commit version.txt and history.txt before releasing package
   [tiberich #13987]
 
