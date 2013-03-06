@@ -1,6 +1,7 @@
 from eea.eggmonkey.version import validate_version, _increment_version
 from eea.eggmonkey.utils import Error, find_file
 import datetime
+import StringIO
 
 
 class HistoryParser(object):
@@ -69,12 +70,15 @@ class HistoryParser(object):
         section = self.entries[0]
         header  = section[0]
         version = header.split(" ")[0]
+
         try:
             validate_version(version)
         except ValueError:
             raise Error("Got invalid version " + version)
 
-        newver     = _increment_version(version)
+        assert 'dev' in version
+        newver = _increment_version(version)
+        assert 'dev' not in newver
         today      = str(datetime.datetime.now().date())
         section[0] = u"%s - (%s)" % (newver, today)
         section[1] = u"-" * len(section[0])
@@ -111,29 +115,9 @@ class HistoryParser(object):
 
         return version
 
-
-class FileHistoryParser(HistoryParser):
-    """A history parser that also does file operations"""
-
-    def __init__(self, path):
-        h_path      = find_file(path, "HISTORY.txt")
-        self.h_path = h_path
-        f           = open(h_path, 'r')
-        content     = f.read()
-        HistoryParser.__init__(self, content)
-        f.close()
-
-    def write(self):
-        f = open(self.h_path, 'rw+')
-        f.truncate(0); f.seek(0)
-        f.write("\n".join([l for l in self.file_header if l.strip()]))
-        f.write("\n\n")
-        for section in self.entries:
-            f.write("\n".join([line for line in section if line.strip()]))
-            f.write("\n\n")
-        f.close()
-
     def bump_version(self):
+        """Bump version; from dev makes final; from final bumps to dev
+        """
         section = self.entries[0]
         header  = section[0]
 
@@ -145,6 +129,31 @@ class FileHistoryParser(HistoryParser):
             self._create_dev_section()
 
         self.write()
+
+    def write(self):
+        pass
+
+
+class VirtualFileHistoryParser(HistoryParser):
+    """History parser that operates on a memory file
+    """
+
+    file = None
+
+    def __init__(self, content):
+        self.file = StringIO.StringIO()
+        self.file.write(content)
+        HistoryParser.__init__(self, content)
+
+    def write(self):
+        f = self.file
+        f.truncate(0); f.seek(0)
+        f.write("\n".join([l for l in self.file_header if l.strip()]))
+        f.write("\n\n")
+        for section in self.entries:
+            f.write("\n".join([line for line in section if line.strip()]))
+            f.write("\n\n")
+        f.seek(0)
 
     def _make_dev(self):
         """Make the first entry to be at -dev. Used in the devify script
@@ -165,6 +174,28 @@ class FileHistoryParser(HistoryParser):
             raise ValueError("HISTORY.txt is not at -dev")
 
         return False
+
+
+class FileHistoryParser(VirtualFileHistoryParser):
+    """A history parser that also does file operations"""
+
+    def __init__(self, path):
+        h_path = find_file(path, "HISTORY.txt")
+        self.h_path = h_path
+        self.file = open(h_path, 'rw+')
+        content = self.file.read()
+        HistoryParser.__init__(self, content)
+
+    def write(self):
+        f = self.file
+        f.truncate(0); f.seek(0)
+        f.write("\n".join([l for l in self.file_header if l.strip()]))
+        f.write("\n\n")
+        for section in self.entries:
+            f.write("\n".join([line for line in section if line.strip()]))
+            f.write("\n\n")
+        f.close()
+
 
 def bump_history(path):
     hp = FileHistoryParser(path)

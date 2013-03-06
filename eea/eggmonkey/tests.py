@@ -1,4 +1,4 @@
-from eea.eggmonkey.history import HistoryParser
+from eea.eggmonkey.history import HistoryParser, VirtualFileHistoryParser
 from eea.eggmonkey.version import _increment_version, validate_version
 import os
 import shutil
@@ -6,6 +6,7 @@ import subprocess
 import sys
 import time
 import unittest
+import StringIO
 #import pprint
 
 
@@ -82,7 +83,7 @@ class MonkeyTestCase(unittest.TestCase):
         assert _increment_version("1.0dev") == "1.0"
         assert _increment_version("0.1svn") == "0.1"
 
-        print _increment_version("0.9.9-dev")
+        #print _increment_version("0.9.9-dev")
 
         assert _increment_version("0.9") == "1.0-dev"
         assert _increment_version("0.0.1") == "0.0.2-dev"
@@ -121,6 +122,38 @@ class MonkeyTestCase(unittest.TestCase):
         assert len(es[0]) == 3
         assert len(es[1]) == 4
         assert len(es[2]) == 3
+
+        hp.bump_version()
+        assert hp.get_current_version() == "1.2-dev"
+        hp.bump_version()
+        assert hp.get_current_version() == "1.2"
+        hp.bump_version()
+        assert hp.get_current_version() == "1.3-dev"
+
+        fixtures = os.path.join(os.path.dirname(__file__), 'fixtures')
+
+        #this is a pretty standard file
+        with open(os.path.join(fixtures, '1.txt')) as f:
+            content = f.read()
+            hp = VirtualFileHistoryParser(content)
+            assert hp.get_current_version() == "6.2-dev"
+            hp.bump_version()
+            hp = VirtualFileHistoryParser(hp.file.read())
+            assert hp.get_current_version() == "6.2"
+            hp.bump_version()
+            hp = VirtualFileHistoryParser(hp.file.read())
+            assert hp.get_current_version() == "6.3-dev"
+
+        with open(os.path.join(fixtures, '2.txt')) as f:
+            content = f.read()
+            hp = VirtualFileHistoryParser(content)
+            assert hp.get_current_version() == "5.8"
+            hp.bump_version()
+            hp = VirtualFileHistoryParser(hp.file.read())
+            assert hp.get_current_version() == "5.9-dev"
+            hp.bump_version()
+            hp = VirtualFileHistoryParser(hp.file.read())
+            assert hp.get_current_version() == "5.9"
 
     def test_bom(self):
         """sometimes file start with a BOM, we strip it

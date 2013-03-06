@@ -7,6 +7,8 @@ def get_digits(s):
 
 
 def _increment_version(version):
+    """
+    """
     devel  = version.endswith('dev') or version.endswith('svn')
     release_final = not devel
 
