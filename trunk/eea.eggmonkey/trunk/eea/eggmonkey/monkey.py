@@ -1,5 +1,3 @@
-#from StringIO import StringIO
-
 from eea.eggmonkey.history import FileHistoryParser, bump_history
 from eea.eggmonkey.scm import get_scm
 from eea.eggmonkey.utils import Error, EGGMONKEY, EXTERNAL, find_file, which
@@ -7,6 +5,7 @@ from eea.eggmonkey.version import change_version, bump_version, get_version
 from itertools import chain
 from zest.pocompile.compile import find_lc_messages
 import ConfigParser
+import StringIO
 import argparse
 import cPickle
 import inspect
@@ -14,10 +13,14 @@ import os
 import subprocess
 import sys
 
+
 Failure = object()
 Success = object()
 
+
 def print_msg(*msgs):
+    """Output a message with a special colored line prefix
+    """
     if isinstance(msgs, (list, tuple)):
         s = " ".join([str(m) for m in msgs])
     else:
@@ -38,7 +41,6 @@ def bump_pkg(pkg_path, final=True):
     """
 
     hp = FileHistoryParser(pkg_path)
-    import pdb; pdb.set_trace()
     hp.bump_version()
     bump_version(pkg_path)
 
@@ -94,7 +96,9 @@ class Monkey():
         self.interactive = get_config(config, "interactive",
                                         args.interactive, section=package)
         self.verbose     = get_config(config, "verbose",
-                                        args.interactive, section=package)
+                                        args.verbose, section=package)
+        self.debug       = get_config(config, "debug",
+                                        args.debug, section=package)
         self.mkrelease   = get_config(config, "mkrelease", args.mkrelease,
                                         section=package)
 
@@ -131,7 +135,6 @@ class Monkey():
         vv = get_version(self.package_path)
         vh = FileHistoryParser(self.package_path).get_current_version()
 
-        import pdb; pdb.set_trace()
         if not "-dev" in vv:
             raise Error("Version.txt file is not at -dev. Quiting.")
 
@@ -214,7 +217,8 @@ class Monkey():
                 map(lambda x:(x[0]+1, x[1]), enumerate(self.instructions)):
             step = getattr(self, 'step_%s' % n)
             step(n, description)
-            if self.verbose:
+            if self.debug:
+                print_msg("Debugging step", n, ": ", description)
                 import pdb; pdb.set_trace()
 
     def step_1(self, step, description):
@@ -448,6 +452,10 @@ def main(*a, **kw):
     cmd.add_argument('-n', "--no-network",
             action='store_const', const=True, default=False,
             help=u"Don't run network operations")
+
+    cmd.add_argument('-D', "--debug",
+            action='store_const', const=True, default=False,
+            help=u"Debug with an interactive prompt")
 
     cmd.add_argument('-i', "--interactive", action='store_const',
             const=True, default=get_config(config, "interactive",
