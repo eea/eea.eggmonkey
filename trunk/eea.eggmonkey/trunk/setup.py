@@ -56,6 +56,7 @@ setup(name=name,
                 "check_version_files = eea.eggmonkey.buildout:check_version_files" ,
                 "print_unreleased_packages = eea.eggmonkey.pypi:print_unreleased_packages" ,
                 "print_pypi_plone_unreleased_eggs = eea.eggmonkey.pypi:print_pypi_plone_unreleased_eggs",
+                "print_pypi_not_on_plone = eea.eggmonkey.pypi:print_pypi_not_on_plone",
                 #"testpypi = eea.eggmonkey.simplepypi:main",
                 ],
             "zc.buildout.extension":[
