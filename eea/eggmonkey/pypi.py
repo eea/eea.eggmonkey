@@ -73,6 +73,34 @@ def print_pypi_plone_unreleased_eggs():
     if errors:
         sys.exit(1)
 
+def print_pypi_not_on_plone():
+    """ Print packages that are released on pypi but not on plone.org
+    """
+    versions = {}
+    vfile = 'versions.cfg'
+    args = sys.argv
+    if len(args) > 1:
+        vfile = args[1]
+
+    with open(vfile, 'r') as vfile:
+        for line in vfile:
+            line = line.strip().split('=')
+            if len(line) == 2:
+                package, version = [x.strip() for x in line]
+                versions[package] = version
+
+    errors = False
+    for package, version in versions.items():
+        if 'eea' not in package.lower():
+            continue
+
+        if check_package_on_server(package, PYPI_PACKAGE):
+            if not check_package_on_server(package, PLONE_PACKAGE):
+                errors = True
+                print "%30s:  not on plone.org" % package
+
+    if errors:
+        sys.exit(1)
 
 def print_unreleased_packages():
     """Given a directory with packages (such as the src/ created by mr.developer,
