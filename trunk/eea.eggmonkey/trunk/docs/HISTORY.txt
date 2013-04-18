@@ -4,6 +4,8 @@ Changelog
 
 2.1-dev - (unreleased)
 ----------------------
+* Feature: Added script to check packages release on pypi but not on plone.org
+  [voineali]
 
 2.0 - (2013-03-06)
 ------------------
