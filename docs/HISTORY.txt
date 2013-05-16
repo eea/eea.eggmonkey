@@ -2,8 +2,8 @@ Changelog
 =========
 [Tiberiu Ichim - tiberiu.ichim@eaudeweb.ro]
 
-2.1-dev - (unreleased)
-----------------------
+2.1 - (2013-05-16)
+------------------
 * Feature: Added script to check packages release on pypi but not on plone.org
   [voineali]
 * Bug fix: changed check_latest script to use the .installed.cfg file to 
