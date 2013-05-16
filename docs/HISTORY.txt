@@ -2,6 +2,9 @@ Changelog
 =========
 [Tiberiu Ichim - tiberiu.ichim@eaudeweb.ro]
 
+2.2-dev - (unreleased)
+----------------------
+
 2.1 - (2013-05-16)
 ------------------
 * Feature: Added script to check packages release on pypi but not on plone.org
