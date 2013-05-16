@@ -17,20 +17,6 @@ def learn(buildout):
     We are interested in reading and caching the sources section of the buildout
     """
 
-    import zc.buildout.easy_install as ez
-    try:
-        picked_versions = ez.Installer.__picked_versions
-    except AttributeError:  #incompatible version of zc.buildout
-        logger.info("Incompatible version of zc.buildout for cleanup "
-                    "sources action of eea.eggmonkey. "
-                    "You can usually ignore this message")
-        picked_versions = {}
-
-    with open(".picked_versions.cfg", "w") as f:
-        f.write("[versions]\n")
-        for k in sorted(picked_versions.keys()):
-            f.write("%s = %s\n" % (k, picked_versions[k]))
-
     mrdeveloper = Extension(buildout)
     sources = mrdeveloper.get_sources()
     autocheckout = mrdeveloper.get_auto_checkout()
@@ -136,12 +122,25 @@ def check_latest():
         new versions are available
     """
 
-    with open('.picked_versions.cfg', 'r') as f:
-        v = {}
-        for l in f.readlines():
-            if l.strip() and (l[0] not in "[#]"):
-                name, version = l.split("=")
-                v[name.strip()] = version.strip()
+    #we use the .installed.cfg file to try to find the longest line
+    #of __buildout_signature__, which contains the eggs that we need.
+    #this is (maybe) highly specific to EEA.
+
+    v = {}
+    with open('.installed.cfg', 'r') as f:
+        lines = f.readlines()
+        longest = ""
+        for line in lines:
+            if line.startswith("__buildout_signature__") and \
+                len(line) > len(longest):
+                longest = line
+
+        eggs = longest.split('=')[1].strip().split(' ')
+        for egg in eggs:
+            spec = egg.split('-')
+            name = spec[0]
+            version = spec[1]
+            v[name.strip()] = version.strip()
 
     skipped = []
     if os.path.exists('.skipped_packages'):
@@ -153,6 +152,7 @@ def check_latest():
     repos = [CheeseShop(), ] #order is important
     flag = 0
 
+    report = []
     for name, v in picked_versions.items():
         if name in skipped:
             continue
@@ -170,7 +170,18 @@ def check_latest():
             continue
         if latest != v:
             print "Package %s - %s" % (name, v), " has a new version: ", latest
+            report.append((name, v, latest))
             flag = 1
+
+    report.sort(lambda x,y:cmp(x[0], y[0]))
+    print
+    print "New versions report"
+    print "==================="
+    for l in report:
+        name, old, new = l
+        space1 = (40 - len(name)) * ' '
+        space2 = (20 - len(old)) * ' '
+        print name + space1 + old + space2  + new
 
     sys.exit(flag)
 
