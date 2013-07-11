@@ -342,6 +342,7 @@ class Monkey():
         do = lambda:bump() and commit()
         self.do_step(do, step, description, interactive=True)
         if self.verbose:
+            vv = get_version(self.package_path)
             print_msg("Bumped version to ", vv)
 
     def step_8(self, step, description):
