@@ -2,8 +2,8 @@ Changelog
 =========
 [Tiberiu Ichim - tiberiu.ichim@eaudeweb.ro]
 
-2.2-dev - (unreleased)
-----------------------
+2.2 - (2013-08-09)
+------------------
 * Bug fix: add deleted line by mistake
   [tiberich]
 
