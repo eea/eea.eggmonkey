@@ -14,7 +14,7 @@ Changelog
 ------------------
 * Feature: Added script to check packages release on pypi but not on plone.org
   [voineali]
-* Bug fix: changed check_latest script to use the .installed.cfg file to 
+* Bug fix: changed check_latest script to use the .installed.cfg file to
   get egg information, avoid messing around in buildout internals and depend
   on zc.buildout.unloadextension which doesn't seem to work properly
   [tiberich #14390]
