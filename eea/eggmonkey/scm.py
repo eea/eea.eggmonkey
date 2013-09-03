@@ -197,9 +197,9 @@ def get_scm(path, no_net):
         if marker in files:
             _scm = factory(path, no_net)
             break
-    
+
     if _scm == None:
-        raise ValueError ("Could not determine scm type")
+        raise ValueError ("Could not determine scm type", path)
 
     return _scm
 
