@@ -2,8 +2,8 @@ Changelog
 =========
 [Tiberiu Ichim - tiberiu.ichim@eaudeweb.ro]
 
-2.3-dev - (unreleased)
-----------------------
+2.3 - (2013-09-06)
+------------------
 * Feature: Added detail for ValueError raised by get_scm
   [szabozo0]
 
