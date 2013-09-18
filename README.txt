@@ -1,5 +1,6 @@
-eea.eggmonkey
-=============
+==============
+EEA Egg Monkey
+==============
 
 This tools should be used together with zc.buildout, mr.developer and
 jarn.mkrelease. Its purpose is to automate a series of 10 steps that are
@@ -19,11 +20,11 @@ The ten steps are:
     10. SVN commit the dev version of the package.
 
 Requirements
-------------
+============
 eea.eggmonkey requires python2.6
 
 Instalation
------------
+===========
 To use it, you need to add eea.eggmonkey as an extension to zc.buildout, for
 example:
 
@@ -105,7 +106,7 @@ during testing), you can run
 
 
 Providing defaults with a configuration file
---------------------------------------------
+============================================
 You can write a file ~/.eggmonkey in the following format:
 
     [*]
