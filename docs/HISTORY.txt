@@ -4,6 +4,8 @@ Changelog
 
 2.4-dev - (unreleased)
 ----------------------
+* Bug fix: fixed control message to work for both python 2.6 and 2.7
+  [ghicaale refs #16729]
 
 2.3 - (2013-09-06)
 ------------------

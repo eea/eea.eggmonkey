@@ -55,14 +55,14 @@ def bump_pkg(pkg_path, final=True):
         f = final and 'final' or 'devel'
         print_msg("There is something wrong with package version when "
                   "trying to bump to ", f)
-        print_msg("HISTORY.txt version is at", vh) 
-        print_msg("version.txt version is at", vv) 
+        print_msg("HISTORY.txt version is at", vh)
+        print_msg("version.txt version is at", vv)
         sys.exit(1)
 
 
 class Monkey():
-    """A single package release utility. 
-    
+    """A single package release utility.
+
     It does the jobs nobody else wants to do by hand."""
 
     #used during releasing process
@@ -165,7 +165,7 @@ class Monkey():
             print "Make sure that the package following metadata filled in:"
             print " - name"
             print " - version"
-            print " - url" 
+            print " - url"
             print " - author and author_email"
             print " - maintainer and maintainer_email"
             raise Error("Package has improperly filled metadata. Quiting")
@@ -199,7 +199,7 @@ class Monkey():
                 a = 'X'
                 while a.lower() not in 'ari':
                     a = raw_input("[A]bort, [R]etry, [I]gnore? ").lower().strip()
-     
+
                 if a == 'i':
                     return Failure
                 elif a == 'a':
@@ -252,9 +252,9 @@ class Monkey():
                     f.write("\nglobal-include *.mo\n")
 
         #compile po files
-        find_lc_messages(self.package_path) 
+        find_lc_messages(self.package_path)
 
-        # If there's a setup.cfg file, we might get strange version so 
+        # If there's a setup.cfg file, we might get strange version so
         # we change it here and again after the package release
         if 'setup.cfg' in os.listdir(self.package_path):
             print_msg("Changing setup.cfg so we won't release a revision egg")
@@ -277,13 +277,13 @@ class Monkey():
             #TODO: commit here
 
     def step_3(self, step, description):
-        cmd = list(chain(*([(self.mkrelease, "-qp")] + 
+        cmd = list(chain(*([(self.mkrelease, "-qp")] +
                                     [('-d', d) for d in self.domain])))
 
         status = None
         if not self.no_net:
             print EXTERNAL + " ".join(cmd)
-            status = self.do_step(lambda:subprocess.check_call(cmd, 
+            status = self.do_step(lambda:subprocess.check_call(cmd,
                                                        cwd=self.package_path),
                                   step, description, interactive=True)
         else:
@@ -379,7 +379,7 @@ def check_global_sanity(args, config):
         err.seek(0)
         output = err.read()
 
-        if "setuptools is a package and cannot be directly executed" \
+        if "is a package and cannot be directly executed" \
                 not in output:
             raise Error("The specified Python doesn't have setuptools")
 
