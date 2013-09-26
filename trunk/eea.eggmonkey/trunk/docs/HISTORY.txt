@@ -2,6 +2,9 @@ Changelog
 =========
 [Tiberiu Ichim - tiberiu.ichim@eaudeweb.ro]
 
+2.5-dev - (unreleased)
+----------------------
+
 2.4 - (2013-09-26)
 ------------------
 * Bug fix: fixed control message to work for both python 2.6 and 2.7
