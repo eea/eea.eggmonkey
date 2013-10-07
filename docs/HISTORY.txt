@@ -1,6 +1,5 @@
 Changelog
 =========
-[Tiberiu Ichim - tiberiu.ichim@eaudeweb.ro]
 
 2.5-dev - (unreleased)
 ----------------------
