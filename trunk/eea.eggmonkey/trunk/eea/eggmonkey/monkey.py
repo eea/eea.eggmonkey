@@ -103,6 +103,7 @@ class Monkey():
                                         section=package)
 
         self.no_net = args.no_network
+        self.no_buildout_update = args.no_buildout_update
 
         self.package_path = package_path = sources[package]['path']
         self.pkg_scm      = get_scm(package_path, self.no_net)
@@ -319,10 +320,14 @@ class Monkey():
                 f.close()
 
     def step_4(self, step, description):
+        if self.no_buildout_update:
+            return
         self.do_step(lambda:self.build_scm.update(['versions.cfg']),
                      step, description)
 
     def step_5(self, step, description):
+        if self.no_buildout_update:
+            return
         version = get_version(self.package_path)
         version_path = os.path.join(self.build_path, 'versions.cfg')
         self.do_step(lambda:change_version(path=version_path,
@@ -330,6 +335,8 @@ class Monkey():
                      step, description)
 
     def step_6(self, step, description):
+        if self.no_buildout_update:
+            return
         version = get_version(self.package_path)
         self.do_step(lambda:self.build_scm.commit(paths=["versions.cfg"],
              message='Updated %s to %s' % (self.package, version)),
@@ -358,7 +365,7 @@ def check_global_sanity(args, config):
     #we check sanity for the arguments that come from the command line
     #and also arguments that come for each package from the configuration file
 
-    if not os.path.exists("versions.cfg"):
+    if not os.path.exists("versions.cfg") and not args.no_buildout_update:
         raise Error("versions.cfg file was not found. Quiting.")
 
     def _check(domain, mkrelease, python):
@@ -454,6 +461,10 @@ def main(*a, **kw):
             action='store_const', const=True, default=False,
             help=u"Don't run network operations")
 
+    cmd.add_argument('-B', "--no-buildout-update",
+            action='store_const', const=True, default=False,
+            help=u"Don't update/upload buildout versions.cfg")
+
     cmd.add_argument('-D', "--debug",
             action='store_const', const=True, default=False,
             help=u"Debug with an interactive prompt")
@@ -506,6 +517,9 @@ def main(*a, **kw):
 
     if args.no_network:
         print_msg("Running in OFFLINE mode")
+
+    if args.no_buildout_update:
+        print_msg("Releasing wihout versions.cfg update")
 
     try:
         if packages and args.autocheckout:

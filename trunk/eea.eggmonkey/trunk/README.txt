@@ -105,6 +105,10 @@ during testing), you can run
     ``bin/monkey -n eea.indicators``
 
 
+If you want to skip versions.cfg update (for example running in a buildout without versions.cfg), you can run
+
+    ``bin/monkey -B eea.indicators``
+
 Providing defaults with a configuration file
 ============================================
 You can write a file ~/.eggmonkey in the following format:
