@@ -1,6 +1,9 @@
 Changelog
 =========
 
+2.6-dev - (unreleased)
+----------------------
+
 2.5 - (2013-12-10)
 ------------------
 * Feature: adding -B option. When given it will skip versions.cfg update
