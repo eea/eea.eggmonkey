@@ -3,6 +3,8 @@ Changelog
 
 2.6-dev - (unreleased)
 ----------------------
+* Bug fix: Fix adding the MANIFEST.in to conform to API changes in scm.py module
+  [olimpiurob]
 
 2.5 - (2013-12-10)
 ------------------
