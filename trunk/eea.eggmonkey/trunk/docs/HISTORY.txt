@@ -3,6 +3,8 @@ Changelog
 
 2.6-dev - (unreleased)
 ----------------------
+* Bug fix: removed wrongly added blockquotes within README.rst
+  [ichim-david refs #18064]
 * Bug fix: Fix adding the MANIFEST.in to conform to API changes in scm.py module
   [olimpiurob]
 
