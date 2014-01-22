@@ -1,8 +1,8 @@
 Changelog
 =========
 
-2.6-dev - (unreleased)
-----------------------
+2.6 - (2014-01-22)
+------------------
 * Bug fix: removed wrongly added blockquotes within README.rst
   [ichim-david refs #18064]
 * Bug fix: Fix adding the MANIFEST.in to conform to API changes in scm.py module
