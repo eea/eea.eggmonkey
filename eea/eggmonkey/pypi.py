@@ -1,14 +1,15 @@
 #
 # Check if EEA packages are released also on pypi and plone.org
 #
-
-from eea.eggmonkey.history import HistoryParser
-from eea.eggmonkey.utils import find_file
 import os
 import sys
+import json
 import urllib2
+from eea.eggmonkey.history import HistoryParser
+from eea.eggmonkey.utils import find_file
 
-PYPI_PACKAGE = 'http://pypi.python.org/pypi/%s'
+
+PYPI_PACKAGE = 'http://pypi.python.org/pypi/%s/json'
 PYPI_RELEASE = 'http://pypi.python.org/pypi/%s/%s'
 PLONE_PACKAGE = 'http://plone.org/products/%s'
 PLONE_RELEASE = 'http://plone.org/products/%s/releases/%s'
@@ -17,13 +18,21 @@ PLONE_RELEASE = 'http://plone.org/products/%s/releases/%s'
 def check_package_on_server(package, server):
     """ Check if package is released on given server
     """
+    meta = {}
     try:
         conn = urllib2.urlopen(server % package)
     except urllib2.HTTPError:
-        return False
+        return meta
     else:
+        if 'json' in server:
+            try:
+                meta = json.loads(conn.read())
+            except Exception:
+                meta = {}
+        else:
+            meta = {'info': {}}
         conn.close()
-        return True
+        return meta
 
 
 def check_release_on_server(package, version, server):
@@ -59,16 +68,20 @@ def print_pypi_plone_unreleased_eggs():
         if 'eea' not in package.lower():
             continue
 
+        # Check plone.org
         if check_package_on_server(package, PLONE_PACKAGE):
             if not check_release_on_server(package, version, PLONE_RELEASE):
                 errors = True
                 print "%30s:  %10s  not on plone.org" % (package, version)
 
-        if check_package_on_server(package, PYPI_PACKAGE):
-            if not check_release_on_server(package, version, PYPI_RELEASE):
+        # Check pypi
+        pypi = check_package_on_server(package, PYPI_PACKAGE)
+        if pypi:
+            serverVersion = pypi.get('info', {}).get('version', 'None')
+            if not serverVersion == version:
                 errors = True
-                print "%30s:  %10s  not on pypi.python.org" % (
-                    package, version)
+                print "%30s:  %10s  not on pypi.python.org  %10s" % (
+                    package, version, serverVersion)
 
     if errors:
         sys.exit(1)
