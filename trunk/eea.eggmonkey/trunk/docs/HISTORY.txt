@@ -3,6 +3,8 @@ Changelog
 
 2.7-dev - (unreleased)
 ----------------------
+* Feature: Use pypi JSON API to check if package is released on pypi
+  [voineali]
 
 2.6 - (2014-01-22)
 ------------------
