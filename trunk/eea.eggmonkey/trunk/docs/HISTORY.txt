@@ -1,6 +1,9 @@
 Changelog
 =========
 
+2.8-dev - (unreleased)
+----------------------
+
 2.7 - (2014-02-03)
 ------------------
 * Feature: Use pypi JSON API to check if package is released on pypi
