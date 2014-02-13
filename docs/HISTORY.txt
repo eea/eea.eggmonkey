@@ -1,8 +1,8 @@
 Changelog
 =========
 
-3.0-dev - (unreleased)
-----------------------
+3.0 - (2014-02-13)
+------------------
 * Change: go back to the behaviour introduced in egg 2.8 as 2.9 gave an error
   when attempting to add files with git
   [ichimdav]
