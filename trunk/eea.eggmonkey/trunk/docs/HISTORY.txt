@@ -3,6 +3,9 @@ Changelog
 
 2.8-dev - (unreleased)
 ----------------------
+* Bugfix: fixed commit of get_scm when commiting the version bump by passing in
+  the a flag
+  [ichimdav]
 
 2.7 - (2014-02-03)
 ------------------

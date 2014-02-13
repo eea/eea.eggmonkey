@@ -111,7 +111,7 @@ class GitSCM(GenericSCM):
             paths = self._get_modified()
             
         self.execute(['git', 'add'] + paths)
-        self.execute(['git', 'commit', '-m', message])
+        self.execute(['git', 'commit', '-am', message])
         self.execute(['git', 'push'])
 
     def update(self, paths):
