@@ -1,6 +1,9 @@
 Changelog
 =========
 
+2.9-dev - (unreleased)
+----------------------
+
 2.8 - (2014-02-13)
 ------------------
 * Bugfix: fixed commit of get_scm when commiting the version bump by passing in
