@@ -1,8 +1,11 @@
 Changelog
 =========
 
-2.9-dev - (unreleased)
-----------------------
+2.9 - (2014-02-13)
+------------------
+* Change: better fix for commit when using get_scm since git suggests a period
+  after the add command
+  [ichimdav]
 
 2.8 - (2014-02-13)
 ------------------
