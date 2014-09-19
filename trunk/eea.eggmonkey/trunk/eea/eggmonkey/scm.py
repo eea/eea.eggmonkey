@@ -41,7 +41,7 @@ class SubversionSCM(GenericSCM):
         self.execute(['svn', 'commit'] + paths + ['-m', message])
 
     def is_dirty(self):
-        ret = subprocess.Popen(['svn', 'status', '.'], 
+        ret = subprocess.Popen(['svn', 'status', '.'],
                                 stdout=subprocess.PIPE, cwd=self.path)
         out, err = ret.communicate()
 
@@ -54,15 +54,15 @@ class SubversionSCM(GenericSCM):
                         matches += 1
                 if matches == 0:
                     flag = True
-                        
+
             return flag
 
-        raise ValueError("Error when trying to get scm status")
+        raise ValueError("Error when trying to get scm status: %s" % self.path)
 
     def get_repo_url(self):
         """
         """
-        ret = subprocess.Popen(['svn', 'info'], 
+        ret = subprocess.Popen(['svn', 'info'],
                                 stdout=subprocess.PIPE, cwd=self.path)
         out, err = ret.communicate()
 
@@ -73,7 +73,7 @@ class SubversionSCM(GenericSCM):
                     url = line.split("URL:")[1].strip()
                     return url
 
-        raise ValueError("Error when trying to get repo url")
+        raise ValueError("Error when trying to get repo url: %s" % self.path)
 
 
 class GitSCM(GenericSCM):
@@ -81,22 +81,23 @@ class GitSCM(GenericSCM):
     """
 
     def _get_modified(self):
-        ret = subprocess.Popen(['git', 'status', '.'], 
+        ret = subprocess.Popen(['git', 'status', '.'],
                                 stdout=subprocess.PIPE, cwd=self.path)
         out, err = ret.communicate()
         if ret.returncode == 0:
             lines = out.splitlines()
         else:
-            raise ValueError("Error when trying to get scm status")
+            raise ValueError("Error when trying to get scm status: %s" %
+                             self.path)
 
         modified = []
         for l in lines:
             if l.startswith("#") and l[1:].strip().startswith("modified:"):
                 #should use find() to find first space char
-                modified.append(l[1:].strip().split()[1])   
+                modified.append(l[1:].strip().split()[1])
 
         return modified
-        
+
 
     def add_and_commit(self, paths, message=None):
         self.add(paths)
@@ -109,7 +110,7 @@ class GitSCM(GenericSCM):
     def commit(self, paths, message):
         if not paths:
             paths = self._get_modified()
-            
+
         self.execute(['git', 'add'] + paths)
         self.execute(['git', 'commit', '-am', message])
         self.execute(['git', 'push'])
@@ -118,27 +119,27 @@ class GitSCM(GenericSCM):
         self.execute(["git", "pull", "-u"])
 
     def is_dirty(self):
-        ret = subprocess.Popen(['git', 'status', '--porcelain', 
-                '--untracked-files=no', '.'], stdout=subprocess.PIPE, 
+        ret = subprocess.Popen(['git', 'status', '--porcelain',
+                '--untracked-files=no', '.'], stdout=subprocess.PIPE,
                 cwd=self.path)
         out, err = ret.communicate()
 
         if ret.returncode == 0:
             return bool(out.splitlines())
 
-        raise ValueError("Error when trying to get scm status")
+        raise ValueError("Error when trying to get scm status: %s" % self.path)
 
     def get_repo_url(self):
         """
         """
-        ret = subprocess.Popen(['git', 'config', '--get', 'remote.origin.url'], 
+        ret = subprocess.Popen(['git', 'config', '--get', 'remote.origin.url'],
                                 stdout=subprocess.PIPE, cwd=self.path)
         out, err = ret.communicate()
 
         if ret.returncode == 0:
             return out.strip()
 
-        raise ValueError("Error when trying to get repo url")
+        raise ValueError("Error when trying to get repo url: %s" % self.path)
 
 
 class MercurialSCM(GenericSCM):
@@ -161,26 +162,26 @@ class MercurialSCM(GenericSCM):
         self.execute(["hg", "pull", "-u"])
 
     def is_dirty(self):
-        ret = subprocess.Popen(['hg', 'status', '-mar', '.'], 
+        ret = subprocess.Popen(['hg', 'status', '-mar', '.'],
                                 stdout=subprocess.PIPE, cwd=self.path)
         out, err = ret.communicate()
 
         if ret.returncode == 0:
             return bool(out.splitlines())
 
-        raise ValueError("Error when trying to get scm status")
+        raise ValueError("Error when trying to get scm status: %s" % self.path)
 
     def get_repo_url(self):
         """
         """
-        ret = subprocess.Popen(['hg', 'paths', 'default'], 
+        ret = subprocess.Popen(['hg', 'paths', 'default'],
                                 stdout=subprocess.PIPE, cwd=self.path)
         out, err = ret.communicate()
 
         if ret.returncode == 0:
             return out.strip()
 
-        raise ValueError("Error when trying to get repo url")
+        raise ValueError("Error when trying to get repo url: %s" % self.path)
 
 
 def get_scm(path, no_net):
