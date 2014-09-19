@@ -1,8 +1,8 @@
 Changelog
 =========
 
-3.1-dev - (unreleased)
-----------------------
+3.1 - (2014-09-19)
+------------------
 * Feature: all errors reported now include the path to the repository.
   [ghicaale refs #20520]
 
