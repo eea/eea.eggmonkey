@@ -21,8 +21,8 @@ class HistoryParser(object):
         is_file_header = True
 
         is_version_header_line = lambda l: (
-                            l and 
-                            (l[0].isdigit() or 
+                            l and
+                            (l[0].isdigit() or
                             (l[0] == 'r' and l[1].isdigit())
                         ))  #version header lines start with a number
 
@@ -30,7 +30,7 @@ class HistoryParser(object):
         is_underlined = lambda n:(len(split_original) - n) >= 2 and \
                                  split_original[n+1].strip() and \
                                  split_original[n+1].strip()[0] in "-=~^"
-        get_lines = lambda start, end:filter(lambda li:li.strip(), 
+        get_lines = lambda start, end:filter(lambda li:li.strip(),
                                              split_original[start:end+1])
 
         for lineno, line in enumerate(split_original):
@@ -51,7 +51,7 @@ class HistoryParser(object):
                             break
                         nl += 1
 
-            if not section_start and is_file_header:   
+            if not section_start and is_file_header:
                 #if there's no section, this means we have file header
                 self.file_header.append(line)
 
@@ -61,7 +61,7 @@ class HistoryParser(object):
                 section_end = None
 
             if section_start and (not section_end) and \
-                                 is_last_line_in_file(lineno): 
+                                 is_last_line_in_file(lineno):
                     #end of file means end of section
                 section_end = len(split_original)
                 self.entries.append(get_lines(section_start, section_end))

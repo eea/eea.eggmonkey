@@ -30,7 +30,7 @@ def _increment_version(version):
             bump = False
         last = False
         out.append(n)
-    
+
     out = map(str, reversed(out))
     newver = ".".join(out) + (not devel and "-dev" or "")
 
