@@ -3,6 +3,7 @@ from eea.eggmonkey.scm import get_scm
 from eea.eggmonkey.utils import Error, EGGMONKEY, EXTERNAL, find_file, which
 from eea.eggmonkey.version import change_version, bump_version, get_version
 from itertools import chain
+from packaging.version import Version
 from zest.pocompile.compile import find_lc_messages
 import ConfigParser
 import StringIO
@@ -71,7 +72,7 @@ class Monkey():
 
 
     _instructions = """
-    #1. Bump version.txt to correct version; from -dev to final. Update history file with release date; Record final release date
+    #1. Bump version.txt to correct version; from .dev0 to final. Update history file with release date; Record final release date
     #2. Prepare the package for release
     #3. Run "mkrelease -qp -d eea" in package dir; (Optional) Run "python setup.py sdist upload -r eea"
     #4. Update versions.cfg file in buildout: svn up eea-buildout/versions.cfg
@@ -136,11 +137,13 @@ class Monkey():
         vv = get_version(self.package_path)
         vh = FileHistoryParser(self.package_path).get_current_version()
 
-        if not "-dev" in vv:
-            raise Error("Version.txt file is not at -dev. Quiting.")
+        vv_version = Version(vv)
+        if not vv_version.is_prerelease:
+            raise Error("Version.txt file does not contain a dev version. Quiting.")
 
-        if not "-dev" in vh:
-            raise Error("HISTORY.txt file is not at -dev. Quiting.")
+        vh_version = Version(vh)
+        if not vh_version.is_prerelease:
+            raise Error("HISTORY.txt file does not contain a dev version. Quiting.")
 
         if vh != vv:
             raise Error("Latest version in HISTORY.txt is not the "
@@ -149,7 +152,6 @@ class Monkey():
         # We depend on collective.dist installed in the python.
         # Installing eggmonkey under buildout with a different python doesn't
         # install properly the collective.dist
-
         print_msg("Installing collective.dist in ", self.python)
         cmd = self.python + " setup.py easy_install -q -U collective.dist"
         try:
@@ -327,6 +329,7 @@ class Monkey():
 
     def step_5(self, step, description):
         if self.no_buildout_update:
+            import pdb; pdb.set_trace( )
             return
         version = get_version(self.package_path)
         version_path = os.path.join(self.build_path, 'versions.cfg')

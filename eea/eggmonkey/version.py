@@ -1,4 +1,5 @@
-from eea.eggmonkey.utils import find_file, Error
+from eea.eggmonkey.utils import find_file
+from packaging.version import Version, LegacyVersion, parse
 
 
 def get_digits(s):
@@ -9,10 +10,16 @@ def get_digits(s):
 def _increment_version(version):
     """
     """
-    devel  = version.endswith('dev') or version.endswith('svn')
+    if version.endswith('svn'):
+        devel = True
+        ver = version.split('-')[0].split('.')
+    else:
+        v_version = Version(version)
+        devel = v_version.is_prerelease
+        ver = v_version.base_version.split('.')
+
     release_final = not devel
 
-    ver = version.split('-')[0].split('.')
     ver = map(get_digits, ver)
 
     last = True #flag for last digit, we treat it differently
@@ -32,7 +39,7 @@ def _increment_version(version):
         out.append(n)
 
     out = map(str, reversed(out))
-    newver = ".".join(out) + (not devel and "-dev" or "")
+    newver = ".".join(out) + (not devel and ".dev0" or "")
 
     #minor  = int(ver[-1]) + int(not devel)
     #newver = ".".join(ver[:-1]) + ".%s%s" % (minor, (not devel and "-dev" or ""))
@@ -54,10 +61,7 @@ def bump_version(path):
     v_path = find_file(path, "version.txt")
     f = open(v_path, 'rw+')
     version = f.read().strip()
-    try:
-        validate_version(version)
-    except ValueError:
-        raise Error("Got invalid version " + version)
+    version = get_normalized_version(version)
 
     newver = _increment_version(version)
     f.truncate(0); f.seek(0)
@@ -65,31 +69,23 @@ def bump_version(path):
     f.close()
 
 
-def get_version(path):
-    """Retrieves the version for a package
-    """
-    v_path = find_file(path, "version.txt")
-    f      = open(v_path, 'r')
-    version = f.read().strip()
-    try:
-        validate_version(version)
-    except ValueError:
-        raise Error("Got invalid version " + version)
 
-    return version
-
-
-def validate_version(version):
+def validate_version(version, legacy=False):
     """See if what we consider a version number is valid version number"""
     version = version.strip()
 
-    if not "." in version:
+    if not legacy:
+        v_version = parse(version)
+        if isinstance(v_version, LegacyVersion):
+            raise ValueError
+
+    if "." not in version:
         raise ValueError
 
     if version.endswith("."):
         raise ValueError
 
-    #all parts need to contain digits, only the last part can contain -dev
+    # all parts need to contain digits, only the last part can contain -dev
     parts = version.split('.')
     if not len(parts) > 1:
         raise ValueError
@@ -111,6 +107,32 @@ def validate_version(version):
             raise ValueError
 
     return True
+
+
+def get_normalized_version(version):
+    """Normalize the version
+    """
+    parsed_version = parse(version)
+
+    if isinstance(parsed_version, LegacyVersion):
+        try:
+            validate_version(version, legacy=True)
+        except ValueError:
+            raise Error("Got invalid version " + version)
+
+        return version
+
+    return parsed_version.public
+
+
+def get_version(path):
+    """Retrieves the version for a package
+    """
+    v_path = find_file(path, "version.txt")
+    f      = open(v_path, 'r')
+    version = f.read().strip()
+
+    return get_normalized_version(version)
 
 
 def change_version(path, package, version):

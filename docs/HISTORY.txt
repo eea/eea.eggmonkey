@@ -3,6 +3,8 @@ Changelog
 
 3.2-dev - (unreleased)
 ----------------------
+* Feature: Updated versioning schema to follow PEP440 versioning conventions
+  [olimpiurob refs #22612]
 
 3.1 - (2014-09-19)
 ------------------

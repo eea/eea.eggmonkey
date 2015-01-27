@@ -36,5 +36,3 @@ def which(program):
                 return exe_file
 
     return None
-
-
