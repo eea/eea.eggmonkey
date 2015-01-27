@@ -1,5 +1,5 @@
-from eea.eggmonkey.version import validate_version, _increment_version
-from eea.eggmonkey.utils import Error, find_file
+from eea.eggmonkey.version import _increment_version, get_normalized_version
+from eea.eggmonkey.utils import find_file
 import datetime
 import StringIO
 
@@ -71,10 +71,7 @@ class HistoryParser(object):
         header  = section[0]
         version = header.split(" ")[0]
 
-        try:
-            validate_version(version)
-        except ValueError:
-            raise Error("Got invalid version " + version)
+        version = get_normalized_version(version)
 
         assert 'dev' in version
         newver = _increment_version(version)
@@ -87,12 +84,7 @@ class HistoryParser(object):
         section = self.entries[0]
         header  = section[0]
         version = header.split(" ")[0]
-        try:
-            validate_version(version)
-        except ValueError:
-            raise Error("Got invalid version " + version)
-
-        newver = version
+        newver = get_normalized_version(version)
         while "dev" not in newver:
             newver = _increment_version(newver)
 
@@ -108,10 +100,7 @@ class HistoryParser(object):
         section = self.entries[0]
         header  = section[0]
         version = header.split(" ")[0].strip()
-        try:
-            validate_version(version)
-        except ValueError:
-            raise Error("Got invalid version " + version)
+        version = get_normalized_version(version)
 
         return version
 

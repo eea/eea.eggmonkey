@@ -40,6 +40,7 @@ setup(name=name,
             'jarn.mkrelease',
             'zest.pocompile',
             'yolk',
+            'packaging'
 
             #anyvc and its required support for repositories
             #'anyvc',

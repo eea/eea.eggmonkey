@@ -78,18 +78,18 @@ H4 = """\xefChangelog
 class MonkeyTestCase(unittest.TestCase):
 
     def test_increment(self):
-        assert _increment_version("1.0") == "1.1-dev"
+        assert _increment_version("1.0") == "1.1.dev0"
         assert _increment_version("1.0-dev") == "1.0"
         assert _increment_version("1.0dev") == "1.0"
         assert _increment_version("0.1svn") == "0.1"
 
         #print _increment_version("0.9.9-dev")
 
-        assert _increment_version("0.9") == "1.0-dev"
-        assert _increment_version("0.0.1") == "0.0.2-dev"
+        assert _increment_version("0.9") == "1.0.dev0"
+        assert _increment_version("0.0.1") == "0.0.2.dev0"
         assert _increment_version("0.0.1-dev") == "0.0.1"
-        assert _increment_version("0.0.9") == "0.1.0-dev"
-        assert _increment_version("0.9.9") == "1.0.0-dev"
+        assert _increment_version("0.0.9") == "0.1.0.dev0"
+        assert _increment_version("0.9.9") == "1.0.0.dev0"
         assert _increment_version("0.9.9-dev") == "0.9.9"
 
     def test_validate_version(self):
@@ -124,11 +124,11 @@ class MonkeyTestCase(unittest.TestCase):
         assert len(es[2]) == 3
 
         hp.bump_version()
-        assert hp.get_current_version() == "1.2-dev"
+        assert hp.get_current_version() == "1.2.dev0"
         hp.bump_version()
         assert hp.get_current_version() == "1.2"
         hp.bump_version()
-        assert hp.get_current_version() == "1.3-dev"
+        assert hp.get_current_version() == "1.3.dev0"
 
         fixtures = os.path.join(os.path.dirname(__file__), 'fixtures')
 
@@ -136,13 +136,13 @@ class MonkeyTestCase(unittest.TestCase):
         with open(os.path.join(fixtures, '1.txt')) as f:
             content = f.read()
             hp = VirtualFileHistoryParser(content)
-            assert hp.get_current_version() == "6.2-dev"
+            assert hp.get_current_version() == "6.2.dev0"
             hp.bump_version()
             hp = VirtualFileHistoryParser(hp.file.read())
             assert hp.get_current_version() == "6.2"
             hp.bump_version()
             hp = VirtualFileHistoryParser(hp.file.read())
-            assert hp.get_current_version() == "6.3-dev"
+            assert hp.get_current_version() == "6.3.dev0"
 
         with open(os.path.join(fixtures, '2.txt')) as f:
             content = f.read()
@@ -150,7 +150,7 @@ class MonkeyTestCase(unittest.TestCase):
             assert hp.get_current_version() == "5.8"
             hp.bump_version()
             hp = VirtualFileHistoryParser(hp.file.read())
-            assert hp.get_current_version() == "5.9-dev"
+            assert hp.get_current_version() == "5.9.dev0"
             hp.bump_version()
             hp = VirtualFileHistoryParser(hp.file.read())
             assert hp.get_current_version() == "5.9"
