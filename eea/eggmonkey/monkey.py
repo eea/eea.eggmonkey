@@ -329,7 +329,6 @@ class Monkey():
 
     def step_5(self, step, description):
         if self.no_buildout_update:
-            import pdb; pdb.set_trace( )
             return
         version = get_version(self.package_path)
         version_path = os.path.join(self.build_path, 'versions.cfg')
