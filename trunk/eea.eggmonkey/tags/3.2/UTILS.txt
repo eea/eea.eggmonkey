@@ -1,0 +1,20 @@
+Additional eea.eggmonkey utilities
+==================================
+
+src cleanup
+-----------
+
+By adding the eea.eggmonkey as extension to buildout, it will 
+automatically check the sources folder for packages that have
+a repository that is different from the current sources section.
+This is useful in case you migrate repositories. Notice that you 
+need to add the eea.eggmonkey extension before you do the migration
+
+package new version check
+-------------------------
+The bin/check_latest script will take all the eggs in your buildout
+and check pypi for the latest versions. You can create a file called
+.skipped_packages, where you place a package name per line.
+
+
+
