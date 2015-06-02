@@ -3,6 +3,8 @@ Changelog
 
 3.3.dev0 - (unreleased)
 -----------------------
+* Bug fix: fixed missing import
+  [ghicaale refs #25722]
 
 3.2 - (2015-02-03)
 ------------------
@@ -28,7 +30,7 @@ Changelog
 
 2.8 - (2014-02-13)
 ------------------
-* Bugfix: fixed commit of get_scm when commiting the version bump by passing in
+* Bug fix: fixed commit of get_scm when commiting the version bump by passing in
   the a flag
   [ichimdav]
 
@@ -311,7 +313,7 @@ Changelog
 
 0.15 - (2010-09-28)
 -------------------
-* Bugfix: Fix printing of debug message for manual upload step
+* Bug fix: Fix printing of debug message for manual upload step
   [tiberich #3642]
 
 0.14 - (2010-09-28)
