@@ -1,6 +1,9 @@
 Changelog
 =========
 
+3.4.dev0 - (unreleased)
+-----------------------
+
 3.3 - (2015-06-02)
 ------------------
 * Bug fix: fixed missing import
