@@ -1,4 +1,4 @@
-from eea.eggmonkey.utils import find_file
+from eea.eggmonkey.utils import Error, find_file
 from packaging.version import Version, LegacyVersion, parse
 
 
