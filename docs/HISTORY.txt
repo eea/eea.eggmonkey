@@ -3,6 +3,8 @@ Changelog
 
 3.4.dev0 - (unreleased)
 -----------------------
+* Bug fix: fixed legacy versions check
+  [ghicaale refs #25722]
 
 3.3 - (2015-06-02)
 ------------------
