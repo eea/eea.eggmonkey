@@ -69,7 +69,6 @@ def bump_version(path):
     f.close()
 
 
-
 def validate_version(version, legacy=False):
     """See if what we consider a version number is valid version number"""
     version = version.strip()
@@ -87,6 +86,7 @@ def validate_version(version, legacy=False):
 
     # all parts need to contain digits, only the last part can contain -dev
     parts = version.split('.')
+    parts = [p for p in parts p != 'eea']
     if not len(parts) > 1:
         raise ValueError
 
@@ -96,8 +96,8 @@ def validate_version(version, legacy=False):
                 raise ValueError
 
     lp = parts[-1]
-    if lp.endswith("-dev"):
-        lp = lp.split("-dev")
+    if lp.endswith("dev0"):
+        lp = lp.split("dev0")
         if (len(lp) != 2) and (lp[1] == ''):
             raise ValueError
         lp = lp[0]
