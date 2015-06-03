@@ -86,7 +86,7 @@ def validate_version(version, legacy=False):
 
     # all parts need to contain digits, only the last part can contain -dev
     parts = version.split('.')
-    parts = [p for p in parts p != 'eea']
+    parts = [p for p in parts if p != 'eea']
     if not len(parts) > 1:
         raise ValueError
 
