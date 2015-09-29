@@ -4,7 +4,7 @@
 import os
 import sys
 import json
-import urllib2
+from eventlet import urllib2
 from eea.eggmonkey.history import HistoryParser
 from eea.eggmonkey.utils import find_file
 

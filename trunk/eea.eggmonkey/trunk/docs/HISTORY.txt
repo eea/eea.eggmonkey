@@ -3,6 +3,8 @@ Changelog
 
 3.5.dev0 - (unreleased)
 -----------------------
+* Bug fix: use evnetlet to prevent hanging out connection
+  [lucas refs #29063]
 
 3.4 - (2015-06-03)
 ------------------
