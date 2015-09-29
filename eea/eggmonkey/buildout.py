@@ -6,7 +6,7 @@ import cPickle
 import os.path
 import shutil
 import sys
-from eventlet import urllib2
+from eventlet.green import urllib2
 import xmlrpclib
 import logging
 
