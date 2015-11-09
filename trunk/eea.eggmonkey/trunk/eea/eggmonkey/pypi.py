@@ -47,7 +47,7 @@ def check_release_on_server(package, version, server):
         return True
 
 
-def print_pypi_plone_unreleased_eggs():
+def print_pypi_plone_unreleased_eggs(pypi=True, plone=False):
     """ Print packages that aren't released on pypi or plone.org
     """
     versions = {}
@@ -69,19 +69,21 @@ def print_pypi_plone_unreleased_eggs():
             continue
 
         # Check plone.org
-        if check_package_on_server(package, PLONE_PACKAGE):
-            if not check_release_on_server(package, version, PLONE_RELEASE):
-                errors = True
-                print "%30s:  %10s  not on plone.org" % (package, version)
+        if plone:
+            if check_package_on_server(package, PLONE_PACKAGE):
+                if not check_release_on_server(package, version, PLONE_RELEASE):
+                    errors = True
+                    print "%30s:  %10s  not on plone.org" % (package, version)
 
         # Check pypi
-        pypi = check_package_on_server(package, PYPI_PACKAGE)
         if pypi:
-            serverVersion = pypi.get('info', {}).get('version', 'None')
-            if not serverVersion == version:
-                errors = True
-                print "%30s:  %10s  not on pypi.python.org  %10s" % (
-                    package, version, serverVersion)
+            pypi = check_package_on_server(package, PYPI_PACKAGE)
+            if pypi:
+                serverVersion = pypi.get('info', {}).get('version', 'None')
+                if not serverVersion == version:
+                    errors = True
+                    print "%30s:  %10s  not on pypi.python.org  %10s" % (
+                        package, version, serverVersion)
 
     if errors:
         sys.exit(1)

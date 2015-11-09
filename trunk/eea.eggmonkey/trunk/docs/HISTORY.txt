@@ -3,6 +3,8 @@ Changelog
 
 3.6.dev0 - (unreleased)
 -----------------------
+* Change: Disable release check on plone.org
+  [voineali]
 
 3.5 - (2015-10-05)
 ------------------
