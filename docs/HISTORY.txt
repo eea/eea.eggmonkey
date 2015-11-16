@@ -1,6 +1,9 @@
 Changelog
 =========
 
+3.7.dev0 - (unreleased)
+-----------------------
+
 3.6 - (2015-11-16)
 ------------------
 * Change: Disable release check on plone.org
