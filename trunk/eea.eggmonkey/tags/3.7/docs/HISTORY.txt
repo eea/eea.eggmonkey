@@ -1,0 +1,405 @@
+Changelog
+=========
+
+3.7 - (2015-11-23)
+------------------
+* Bug fix: Fixed release check on pypi
+  [voineali]
+
+3.6 - (2015-11-16)
+------------------
+* Change: Disable release check on plone.org
+  [voineali]
+
+3.5 - (2015-10-05)
+------------------
+* Bug fix: use evnetlet to prevent hanging out connection
+  [lucas refs #29063]
+
+3.4 - (2015-06-03)
+------------------
+* Bug fix: fixed legacy versions check
+  [ghicaale refs #25722]
+
+3.3 - (2015-06-02)
+------------------
+* Bug fix: fixed missing import
+  [ghicaale refs #25722]
+
+3.2 - (2015-02-03)
+------------------
+* Feature: Updated versioning schema to follow PEP440 versioning conventions
+  [olimpiurob refs #22612]
+
+3.1 - (2014-09-19)
+------------------
+* Feature: all errors reported now include the path to the repository.
+  [ghicaale refs #20520]
+
+3.0 - (2014-02-13)
+------------------
+* Change: go back to the behaviour introduced in egg 2.8 as 2.9 gave an error
+  when attempting to add files with git
+  [ichimdav]
+
+2.9 - (2014-02-13)
+------------------
+* Change: better fix for commit when using get_scm since git suggests a period
+  after the add command
+  [ichimdav]
+
+2.8 - (2014-02-13)
+------------------
+* Bug fix: fixed commit of get_scm when commiting the version bump by passing in
+  the a flag
+  [ichimdav]
+
+2.7 - (2014-02-03)
+------------------
+* Feature: Use pypi JSON API to check if package is released on pypi
+  [voineali]
+
+2.6 - (2014-01-22)
+------------------
+* Bug fix: removed wrongly added blockquotes within README.rst
+  [ichim-david refs #18064]
+* Bug fix: Fix adding the MANIFEST.in to conform to API changes in scm.py module
+  [olimpiurob]
+
+2.5 - (2013-12-10)
+------------------
+* Feature: adding -B option. When given it will skip versions.cfg update
+  [batradav]
+
+2.4 - (2013-09-26)
+------------------
+* Bug fix: fixed control message to work for both python 2.6 and 2.7
+  [ghicaale refs #16729]
+
+2.3 - (2013-09-06)
+------------------
+* Feature: Added detail for ValueError raised by get_scm
+  [szabozo0]
+
+2.2 - (2013-08-09)
+------------------
+* Bug fix: add deleted line by mistake
+  [tiberich]
+
+2.1 - (2013-05-16)
+------------------
+* Feature: Added script to check packages release on pypi but not on plone.org
+  [voineali]
+* Bug fix: changed check_latest script to use the .installed.cfg file to
+  get egg information, avoid messing around in buildout internals and depend
+  on zc.buildout.unloadextension which doesn't seem to work properly
+  [tiberich #14390]
+
+2.0 - (2013-03-06)
+------------------
+* Bug fix: commit version.txt and history.txt before releasing package
+  [tiberich #13987]
+
+1.9 - (2013-02-08)
+------------------
+* Bug fix: don't fail if incompatible version of zc.buildout is used
+  This is used in the clean sources folder
+  [tiberich]
+
+1.8 - (2013-01-28)
+------------------
+* Bug fix: added info about what fields are required in package metadata
+  [tiberich]
+
+1.7 - (2013-01-15)
+------------------
+* Bug fix: strip BOM from first character in file
+  [tiberich]
+* Bug fix: don't abort if failing to install collective.dist
+  [tiberich]
+
+1.6 - (2012-11-22)
+------------------
+* Bug fix: fixed /src cleanup when repo source ends with /
+  [ghicaale refs #9527]
+
+1.5 - (2012-11-22)
+------------------
+* Bug fix: improve history parsing when no empty lines are left between
+  version sections
+  [tiberich refs #10000]
+
+1.4 - (2012-11-20)
+------------------
+* Bug fix: add a newline in generated MANIFEST.in
+  [tiberich refs #5493]
+
+1.3 - (2012-08-29)
+------------------
+* Bug fix: Push tags on github when releasing new eggs
+  [voineali fixes #5486]
+
+1.2 - (2012-08-07)
+------------------
+* Change: make manual upload the default operation, avoids problem with
+  eea eggrepo server.
+  [tiberich #5356]
+
+1.1 - (2012-08-07)
+------------------
+* Feature: added utility script that will simply make a package be at -dev
+  version. This is useful when developing eggmonkey itself.
+  [tiberich #5356]
+* Bug fix: fixed handling of default domains
+  [tiberich #5356]
+* Bug fix: fix handling commits with git repos
+  [tiberich #5356]
+
+1.0 - (2012-07-13)
+------------------
+* Feature: improved output with changelog of unreleased eggs,
+  so we quickly know what is in each unreleased egg.
+  [demarant refs #5224]
+* Change: use a different versioning strategy for increasing versions
+  Now we go from 0.0.9 to 0.1.0 instead of 0.0.10
+  [tiberich #5293]
+
+0.40 - (2012-06-12)
+-----------------------
+* Bug fix: exit eggmonkey when not ignoring errors and there's an error
+  [tiberich]
+
+0.39 - (2012-05-21)
+-----------------------
+* Bug fix: fix entry point for print_unreleased_packages
+  [tiberich]
+* Bug fix: fixed markup of HISTORY.txt file
+  [ciobabog refs #5231]
+
+0.38 - (2012-05-21)
+-----------------------
+* Bug fix: don't overwrite manifest file if it exists
+  [tiberich]
+
+0.37 - (2012-05-21)
+-------------------
+* Bug fix: don't fail when encountering history entry line that start with
+  a revision number (in format rNNN)
+  [tiberich #3978]
+* Feature: use zest.pocompile to compile the po files to mo
+  [tiberich #5120]
+
+0.36 - (2012-04-20)
+-------------------
+* Bug fix: fix scms
+  [tiberich #4154]
+
+0.35 - (2012-04-20)
+-------------------
+* Bug fix: fix scms
+  [tiberich #4154]
+
+0.34 - (2012-04-19)
+-------------------
+* Bug fix: fix scms
+  [tiberich #4154]
+
+0.33 - (2012-04-19)
+-------------------
+* Bug fix: fix scms wrongfully dealing with paths
+  [tiberich #4154]
+
+0.32 - (2012-04-19)
+-------------------
+* Bug fix: print_pypi_plone_unreleased_eggs sys exit with the right exit code (1)
+  if there are package unreleased on pypi or plone.org.
+  [voineali]
+* Feature: also works with mercurial and git
+  [tiberich #4154]
+
+0.31 - (2012-01-04)
+-------------------
+* Feature: Added print_pypi_plone_unreleased_eggs console script that will
+  print packages that are not released also on pypi, plone.org
+  [voineali]
+
+0.30 - (2011-10-07)
+-------------------
+* Feature: added print_unreleased_packages console script that will print packages where the history is dirty
+  [tiberich]
+* Cleanup: of pyflakes warnings
+  [ichimdav #4141]
+* Cleanup: of pylint violations
+  [ichimdav #4140]
+* Change: use the --quiet flag when running setup sdist on manual-upload operations
+  [tiberich]
+* Bug fix: print steps and instructions when exiting because of error
+  [tiberich]
+
+0.29 - (2010-12-10)
+-------------------
+* Bug fix: fixed a bug when processing personal configuration file with no entries for current package
+  [tiberich]
+* Bug fix: fixed printing messages when running in offline mode
+  [tiberich]
+* Feature: allow processing of history files that have revision numbers of versions for releases
+  [tiberich]
+
+0.28 - (2010-11-25)
+-------------------
+* Bug fix: always install collective.dist, even when running in --no-network mode
+  [tiberich]
+
+0.27 - (2010-11-22)
+-------------------
+* Feature: allow custom configuration in ~/.eggmonkey
+  [tiberich]
+* Change: Use -q (quiet) flag when running mkrelease and easy_install
+  [tiberich #3858]
+
+0.26 - (2010-11-19)
+-------------------
+* Bug fix: fix bug in releasing egg with -u switch
+  [tiberich]
+
+0.25 - (2010-11-16)
+-------------------
+* Feature: use collective.dist to check for package metadata validity
+  [tiberich #3851]
+* Feature: now you can specify multiple repositories to register and upload egg
+  [tiberich #3850]
+* Change: use exception raising for exiting the program
+  [tiberich]
+
+0.24 - (2010-11-11)
+-------------------
+* Bug fix: improved history file whiteline detection
+  [tiberich #3807]
+* Bug fix: made svn up only execute when network operations are allowed
+  [tiberich #3807]
+
+0.23 - (2010-11-10)
+-------------------
+* Change: Improve svn commit message when changing version to -dev
+  [tiberich #3807]
+
+0.22 - (2010-11-10)
+-------------------
+* Change: Add tests for version incrementing
+  [tiberich #3807]
+* Bug fix: Improve algorithm for version incrementing, now we also look at -svn versions
+  [tiberich #3807]
+* Bug fix: Improve algorithm for version validation
+  [tiberich #3807]
+* Bug fix: Test if mkrelease path is the same as python path, to alert for user error
+  [tiberich #3807]
+* Bug fix: Move svn update to the top of package sanity check
+  [tiberich #3807]
+* Bug fix: Look for a numeric version in the setup.py file, and fail if there is one
+  [tiberich #3807]
+* Bug fix: test if version in HISTORY.txt is the same as the one in version.txt
+  [tiberich #3807]
+
+0.21 - (2010-10-29)
+-------------------
+* Bug fix: Run svn up before processing a package
+  [tiberich #3806]
+
+0.20 - (2010-10-28)
+-------------------
+* Feature: Added --python configuration option to be used with manual upload
+  [tiberich]
+* Change: refactored message printing
+  [tiberich]
+
+0.19 - (2010-10-20)
+-------------------
+* Add MANIFEST.in file when it's missing
+
+0.18 - (2010-09-30)
+-------------------
+* Changed the sdist command so that it will generate zips instead of .tar.gz
+  [tiberich #3642]
+
+0.17 - (2010-09-30)
+-------------------
+* Remove y/n/q prompt when doing step if has argument to continue
+  [tiberich #3642]
+
+0.16 - (2010-09-30)
+-------------------
+* Check validity of package name and explain that eggmonkey needs to run from the buildout folder
+  [tiberich #3642]
+
+0.15 - (2010-09-28)
+-------------------
+* Bug fix: Fix printing of debug message for manual upload step
+  [tiberich #3642]
+
+0.14 - (2010-09-28)
+-------------------
+* Feature: handle cases when setup.cfg cause manual upload to deliver svn versions
+  [tiberich #3642]
+* Feature: print blue messages about commands being ran
+  [tiberich #3642]
+
+0.13 - (2010-09-28)
+-------------------
+* Feature: check that the version that we get from parsing files is valid
+  [tiberich #3642]
+
+0.12 - (2010-09-28)
+-------------------
+* Bug fix: Check that the package is at -dev version when starting to process it
+  [tiberich #3642]
+
+0.11 - (2010-09-20)
+-------------------
+* Use colored ouput to make eggmonkey messages easier to distinguish
+* Check if versions.cfg exists before starting
+* Get input from user in case of error when doing mkrelease, if used with -u flag
+* Improve commit message when changing version to development
+
+0.10 - (2010-09-17)
+-------------------
+* Add sanity checks for mkrelease script and package path
+
+0.9 - (2010-09-16)
+------------------
+* Update readme file with details about python2.6 requirement
+
+0.8 - (2010-09-16)
+------------------
+* Fix bug in history file handling
+
+0.7 - (2010-09-16)
+------------------
+* Fix small bug in incrementing versions.cfg
+
+0.6 - (2010-09-16)
+------------------
+* Use the shell for the manual upload operation
+
+0.5 - (2010-09-16)
+------------------
+* Change the way the manual upload is executed
+
+0.4 - (2010-09-16)
+------------------
+* Fix setup upload command execution
+
+0.3 - (2010-09-16)
+------------------
+* Fix wrong name for setup.py inside the monkey module
+
+0.2 - (2010-09-16)
+------------------
+* mkrelease fails with error due to inexistent register command on eggrepo,
+  now we handle this
+  [tiberich]
+
+0.1 - (2010-09-16)
+----------------------
+* Initial commit
+  [tiberich]
+
