@@ -77,9 +77,9 @@ def print_pypi_plone_unreleased_eggs(pypi=True, plone=False):
 
         # Check pypi
         if pypi:
-            pypi = check_package_on_server(package, PYPI_PACKAGE)
-            if pypi:
-                serverVersion = pypi.get('info', {}).get('version', 'None')
+            _pypi = check_package_on_server(package, PYPI_PACKAGE)
+            if _pypi:
+                serverVersion = _pypi.get('info', {}).get('version', 'None')
                 if not serverVersion == version:
                     errors = True
                     print "%30s:  %10s  not on pypi.python.org  %10s" % (

@@ -3,6 +3,8 @@ Changelog
 
 3.7.dev0 - (unreleased)
 -----------------------
+* Bug fix: Fixed release check on pypi
+  [voineali]
 
 3.6 - (2015-11-16)
 ------------------
