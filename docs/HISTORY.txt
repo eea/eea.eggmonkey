@@ -1,6 +1,9 @@
 Changelog
 =========
 
+3.8.dev0 - (unreleased)
+-----------------------
+
 3.7 - (2015-11-23)
 ------------------
 * Bug fix: Fixed release check on pypi
