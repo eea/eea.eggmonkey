@@ -50,6 +50,16 @@ setup(name=name,
             #'dulwich',
 
             ],
+        extras_require={
+          'yum': [
+              'apr-util-devel',
+              'subversion-devel',
+              ],
+          'apt': [
+              'libsvn-dev',
+              'libaprutil1-dev'
+          ]
+        },
         entry_points={
             "console_scripts":[
                 "monkey = eea.eggmonkey.monkey:main" ,

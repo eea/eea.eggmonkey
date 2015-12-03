@@ -3,6 +3,8 @@ Changelog
 
 3.8.dev0 - (unreleased)
 -----------------------
+* Change: Added system depenedencies within setup.py
+  [voineali refs #27406]
 
 3.7 - (2015-11-23)
 ------------------
