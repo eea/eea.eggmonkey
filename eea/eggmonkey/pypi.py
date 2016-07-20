@@ -65,7 +65,7 @@ def print_pypi_plone_unreleased_eggs(pypi=True, plone=False):
 
     errors = False
     for package, version in versions.items():
-        if 'eea' not in package.lower():
+        if not ('eea' in package.lower() or 'sparql' in package.lower()):
             continue
 
         # Check plone.org

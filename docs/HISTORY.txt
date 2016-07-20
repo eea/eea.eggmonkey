@@ -3,6 +3,8 @@ Changelog
 
 3.9.dev0 - (unreleased)
 -----------------------
+* Change: Include sparql-client in pypi release check
+  [avoinea]
 
 3.8 - (2015-12-07)
 ------------------
