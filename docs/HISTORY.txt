@@ -1,6 +1,9 @@
 Changelog
 =========
 
+4.0.dev0 - (unreleased)
+-----------------------
+
 3.9 - (2016-08-03)
 ------------------
 * Change: Include sparql-client in pypi release check
