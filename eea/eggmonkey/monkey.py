@@ -1,4 +1,4 @@
-from eea.eggmonkey.history import FileHistoryParser, bump_history
+from eea.eggmonkey.history import FileHistoryParser
 from eea.eggmonkey.scm import get_scm
 from eea.eggmonkey.utils import Error, EGGMONKEY, EXTERNAL, find_file, which
 from eea.eggmonkey.version import change_version, bump_version, get_version
@@ -6,10 +6,8 @@ from itertools import chain
 from packaging.version import Version
 from zest.pocompile.compile import find_lc_messages
 import ConfigParser
-import StringIO
 import argparse
 import cPickle
-import inspect
 import os
 import subprocess
 import sys
@@ -30,9 +28,9 @@ def print_msg(*msgs):
 
 
 def get_buildout():
-    cwd        = os.getcwd()
+    cwd = os.getcwd()
     cache_file = open(os.path.join(cwd, '_eggmonkey.cache'), 'r')
-    buildout   = cPickle.load(cache_file)
+    buildout = cPickle.load(cache_file)
     cache_file.close()
     return buildout
 
@@ -48,9 +46,11 @@ def bump_pkg(pkg_path, final=True):
     vh = hp.get_current_version()
     vv = get_version(pkg_path)
 
-    check_final = lambda x, final: (final and ('dev' not in x)) or \
-                                   ((not final) and ('dev' in x))
-    check_versions = lambda x,y, final: (x == y) and check_final(x, final)
+    def check_final(x, final):
+        return (final and ('dev' not in x)) or ((not final) and ('dev' in x))
+
+    def check_versions(x, y, final):
+        return (x == y) and check_final(x, final)
 
     if not check_versions(vv, vh, final):
         f = final and 'final' or 'devel'
@@ -66,10 +66,9 @@ class Monkey():
 
     It does the jobs nobody else wants to do by hand."""
 
-    #used during releasing process
+    # used during releasing process
     tag_build = None
     tag_svn_revision = None
-
 
     _instructions = """
     #1. Bump version.txt to correct version; from .dev0 to final. Update history file with release date; Record final release date
@@ -80,44 +79,45 @@ class Monkey():
     #6. Commit versions.cfg file: svn commit versions.cfg
     #7. Bump package version file; From final to +1-dev. Update history file. Add Unreleased section
     #8. SVN commit the dev version of the package.
-    """ #this needs to be updated everytime steps are modified
+    """ # this needs to be updated everytime steps are modified
     _dummy = """
     """
 
     def __init__(self, package, sources, args, config):
         self.package = package
 
-        self.python = get_config(config, "python", args.python, section=package)
+        self.python = get_config(config,
+                                 "python", args.python, section=package)
 
-        self.domain = get_config(config, "domain", None, section=package) or ['eea']
+        self.domain = get_config(config,
+                                 "domain", None, section=package) or ['eea']
         self.domain = args.domain or self.domain
         if isinstance(self.domain, basestring):
             self.domain = [self.domain]
 
         self.interactive = get_config(config, "interactive",
-                                        args.interactive, section=package)
-        self.verbose     = get_config(config, "verbose",
-                                        args.verbose, section=package)
-        self.debug       = get_config(config, "debug",
-                                        args.debug, section=package)
-        self.mkrelease   = get_config(config, "mkrelease", args.mkrelease,
-                                        section=package)
+                                      args.interactive, section=package)
+        self.verbose = get_config(config,
+                                  "verbose", args.verbose, section=package)
+        self.debug = get_config(config, "debug", args.debug, section=package)
+        self.mkrelease = get_config(config, "mkrelease", args.mkrelease,
+                                    section=package)
 
         self.no_net = args.no_network
         self.no_buildout_update = args.no_buildout_update
 
         self.package_path = package_path = sources[package]['path']
-        self.pkg_scm      = get_scm(package_path, self.no_net)
+        self.pkg_scm = get_scm(package_path, self.no_net)
 
-        self.build_path   = os.getcwd()
-        self.build_scm    = get_scm(self.build_path, self.no_net)
+        self.build_path = os.getcwd()
+        self.build_scm = get_scm(self.build_path, self.no_net)
 
-        self.instructions = filter(None, map(lambda s:s.strip(),
-                                    self._instructions.splitlines()))
+        self.instructions = filter(None, map(lambda s: s.strip(),
+                                             self._instructions.splitlines()))
 
     def check_package_sanity(self):
-        #if self.pkg_scm.is_dirty():
-            #raise Error("Package is dirty. Quiting")
+        # if self.pkg_scm.is_dirty():
+            # raise Error("Package is dirty. Quiting")
 
         if not os.path.exists(self.package_path):
             raise Error("Path %s is invalid, quiting." % self.package_path)
@@ -139,11 +139,13 @@ class Monkey():
 
         vv_version = Version(vv)
         if not vv_version.is_prerelease:
-            raise Error("Version.txt file does not contain a dev version. Quiting.")
+            raise Error("Version.txt file does not contain a dev version. "
+                        "Quiting.")
 
         vh_version = Version(vh)
         if not vh_version.is_prerelease:
-            raise Error("HISTORY.txt file does not contain a dev version. Quiting.")
+            raise Error("HISTORY.txt file does not contain a dev version. "
+                        "Quiting.")
 
         if vh != vv:
             raise Error("Latest version in HISTORY.txt is not the "
@@ -157,8 +159,8 @@ class Monkey():
         try:
             subprocess.check_call(cmd, cwd=self.package_path, shell=True)
         except subprocess.CalledProcessError:
-            #raise Error("Failed to install collective.dist in", self.python)
-            pass    #easier not to fail here
+            # raise Error("Failed to install collective.dist in", self.python)
+            pass    # easier not to fail here
 
         # check if package metadata is properly filled
         try:
@@ -192,7 +194,8 @@ class Monkey():
             except Exception, e:
 
                 if not interactive:
-                    print_msg('Got error "%s" on step %s and we abort' % (e, step))
+                    print_msg('Got error "%s" on step %s and we abort' %
+                              (e, step))
                     print_msg("We were doing: %s" % description)
                     raise
 
@@ -201,7 +204,8 @@ class Monkey():
 
                 a = 'X'
                 while a.lower() not in 'ari':
-                    a = raw_input("[A]bort, [R]etry, [I]gnore? ").lower().strip()
+                    a = raw_input(
+                        "[A]bort, [R]etry, [I]gnore? ").lower().strip()
 
                 if a == 'i':
                     return Failure
@@ -217,20 +221,26 @@ class Monkey():
         self.check_package_sanity()
 
         for (n, description) in \
-                map(lambda x:(x[0]+1, x[1]), enumerate(self.instructions)):
+                map(lambda x: (x[0]+1, x[1]), enumerate(self.instructions)):
             step = getattr(self, 'step_%s' % n)
             step(n, description)
             if self.debug:
                 print_msg("Debugging step", n, ": ", description)
-                import pdb; pdb.set_trace()
+                import pdb
+                pdb.set_trace()
 
     def step_1(self, step, description):
         """Bump the version in the version.txt file
         """
-        bump = lambda:bump_pkg(self.package_path, final=True)
-        commit = lambda:self.pkg_scm.commit(
-                                message="Bump version and history file")
-        do = lambda:bump() and commit()
+        def bump():
+            return bump_pkg(self.package_path, final=True)
+
+        def commit():
+            return self.pkg_scm.commit(message="Bump version and history file")
+
+        def do():
+            return bump() and commit()
+
         self.do_step(do, step, description, interactive=True)
         if self.verbose:
             vv = get_version(self.package_path)
@@ -250,11 +260,11 @@ class Monkey():
             self.pkg_scm.add_and_commit(['MANIFEST.in'])
         else:
             with open(manifest_path, 'a+') as f:
-                if not 'global-include *.mo' in f.read():
+                if 'global-include *.mo' not in f.read():
                     f.seek(0)
                     f.write("\nglobal-include *.mo\n")
 
-        #compile po files
+        # compile po files
         find_lc_messages(self.package_path)
 
         # If there's a setup.cfg file, we might get strange version so
@@ -273,22 +283,24 @@ class Monkey():
                     b.append("tag_svn_revision = false")
                 else:
                     b.append(l)
-            f.seek(0); f.truncate(0)
+            f.seek(0)
+            f.truncate(0)
             f.write("\n".join(b))
             f.close()
 
-            #TODO: commit here
+            # TODO: commit here
 
     def step_3(self, step, description):
         cmd = list(chain(*([(self.mkrelease, "-qp")] +
-                                    [('-d', d) for d in self.domain])))
+                           [('-d', d) for d in self.domain])))
 
         status = None
         if not self.no_net:
             print EXTERNAL + " ".join(cmd)
-            status = self.do_step(lambda:subprocess.check_call(cmd,
-                                                       cwd=self.package_path),
-                                  step, description, interactive=True)
+            status = self.do_step(lambda: subprocess.check_call(
+                cmd, cwd=self.package_path),
+                step, description, interactive=True
+            )
         else:
             print_msg("Fake operation: ", " ".join(cmd))
 
@@ -299,13 +311,14 @@ class Monkey():
                 if not self.no_net:
                     print EXTERNAL + cmd
                     self.do_step(
-                        lambda:subprocess.check_call(cmd, cwd=self.package_path,
-                                                     shell=True),
+                        lambda: subprocess.check_call(
+                            cmd, cwd=self.package_path, shell=True),
                         step, description)
                 else:
                     print EGGMONKEY + "Fake operation: " + cmd
 
-            if self.tag_build:   #we write the initial version of the setup.cfg file
+            if self.tag_build:
+                # we write the initial version of the setup.cfg file
                 print_msg("Changing setup.cfg back to the original")
                 f = open(os.path.join(self.package_path, 'setup.cfg'), 'rw+')
                 b = []
@@ -317,14 +330,15 @@ class Monkey():
                         b.append(self.tag_svn_revision)
                     else:
                         b.append(l)
-                f.seek(0); f.truncate(0)
+                f.seek(0)
+                f.truncate(0)
                 f.write("\n".join(b))
                 f.close()
 
     def step_4(self, step, description):
         if self.no_buildout_update:
             return
-        self.do_step(lambda:self.build_scm.update(['versions.cfg']),
+        self.do_step(lambda: self.build_scm.update(['versions.cfg']),
                      step, description)
 
     def step_5(self, step, description):
@@ -332,23 +346,30 @@ class Monkey():
             return
         version = get_version(self.package_path)
         version_path = os.path.join(self.build_path, 'versions.cfg')
-        self.do_step(lambda:change_version(path=version_path,
-                               package=self.package, version=version),
-                     step, description)
+        self.do_step(lambda: change_version(
+            path=version_path, package=self.package, version=version),
+            step, description)
 
     def step_6(self, step, description):
         if self.no_buildout_update:
             return
         version = get_version(self.package_path)
-        self.do_step(lambda:self.build_scm.commit(paths=["versions.cfg"],
-             message='Updated %s to %s' % (self.package, version)),
-             step, description)
+        self.do_step(
+            lambda: self.build_scm.commit(
+                paths=["versions.cfg"],
+                message='Updated %s to %s' % (self.package, version)),
+            step, description)
 
     def step_7(self, step, description):
-        bump = lambda:bump_pkg(self.package_path, final=False)
-        commit = lambda:self.pkg_scm.commit(
-                                message="Bump version and history file")
-        do = lambda:bump() and commit()
+        def bump():
+            return bump_pkg(self.package_path, final=False)
+
+        def commit():
+            return self.pkg_scm.commit(message="Bump version and history file")
+
+        def do():
+            return bump() and commit()
+
         self.do_step(do, step, description, interactive=True)
         if self.verbose:
             vv = get_version(self.package_path)
@@ -357,34 +378,34 @@ class Monkey():
     def step_8(self, step, description):
         version = get_version(self.package_path)
         self.do_step(
-            lambda:self.pkg_scm.commit([],
-                                       message='Updated version for %s to %s' %
-                                               (self.package, version)),
+            lambda: self.pkg_scm.commit([],
+                                        message='Updated version for %s to %s'
+                                        % (self.package, version)),
             step, description)
 
 
 def check_global_sanity(args, config):
-    #we check sanity for the arguments that come from the command line
-    #and also arguments that come for each package from the configuration file
+    # we check sanity for the arguments that come from the command line
+    # and also arguments that come for each package from the configuration file
 
     if not os.path.exists("versions.cfg") and not args.no_buildout_update:
         raise Error("versions.cfg file was not found. Quiting.")
 
     def _check(domain, mkrelease, python):
 
-        #check if mkrelease can be found
+        # check if mkrelease can be found
         if ((mkrelease, python) != (None, None)) and (mkrelease == python):
             raise Error("Wrong parameters for python or mkrelease. Quiting.")
 
-        if (mkrelease != None) and not which(mkrelease):
+        if (mkrelease is not None) and not which(mkrelease):
             raise Error("Could not find mkrelease script. Quiting.")
 
-        #we check if this python has setuptools installed
-        #we need to redirect stderr to a file, I see no cleaner
-        #way to achieve this
+        # we check if this python has setuptools installed
+        # we need to redirect stderr to a file, I see no cleaner
+        # way to achieve this
         err = open('_test_setuptools', 'wr+')
         cmd = [python, '-m', 'setuptools']
-        exit_code = subprocess.call(cmd, stderr=err, stdout=err)
+        subprocess.call(cmd, stderr=err, stdout=err)
         err.seek(0)
         output = err.read()
 
@@ -393,21 +414,21 @@ def check_global_sanity(args, config):
             raise Error("The specified Python doesn't have setuptools")
 
     tocheck = [('default', {
-        'domain':args.domain,
-        'mkrelease':args.mkrelease,
-        'python':args.python,
+        'domain': args.domain,
+        'mkrelease': args.mkrelease,
+        'python': args.python,
     })]
 
-    if config != None:
-        for section in filter(lambda s:s.strip() != "*", config.sections()):
+    if config is not None:
+        for section in filter(lambda s: s.strip() != "*", config.sections()):
             tocheck.append((section, {
-                'domain':get_config(config, "domain", "",
-                                    section=section).split() or [],
-                'mkrelease':get_config(config, "mkrelease", None,
-                                    section=section) or args.mkrelease,
-                'python':get_config(config, "python", None,
-                                    section=section) or args.python,
-                }))
+                'domain': get_config(config, "domain", "",
+                                     section=section).split() or [],
+                'mkrelease': get_config(config, "mkrelease", None,
+                                        section=section) or args.mkrelease,
+                'python': get_config(config, "python", None,
+                                     section=section) or args.python,
+            }))
 
     for s in tocheck:
         _check(**s[1])
@@ -456,59 +477,67 @@ def main(*a, **kw):
             u"Eggmonkey: easy build and release of eggs\n")
 
     cmd.add_argument('-v', "--verbose",
-            action='store_const', const=True, default=False,
-            help=u"Verbose. Will display content of external commands output")
+                     action='store_const', const=True, default=False,
+                     help=u"Verbose. Will display content of "
+                          u"external commands output")
 
     cmd.add_argument('-n', "--no-network",
-            action='store_const', const=True, default=False,
-            help=u"Don't run network operations")
+                     action='store_const', const=True, default=False,
+                     help=u"Don't run network operations")
 
     cmd.add_argument('-B', "--no-buildout-update",
-            action='store_const', const=True, default=False,
-            help=u"Don't update/upload buildout versions.cfg")
+                     action='store_const', const=True, default=False,
+                     help=u"Don't update/upload buildout versions.cfg")
 
     cmd.add_argument('-D', "--debug",
-            action='store_const', const=True, default=False,
-            help=u"Debug with an interactive prompt")
+                     action='store_const', const=True, default=False,
+                     help=u"Debug with an interactive prompt")
 
-    cmd.add_argument('-i', "--interactive", action='store_const',
-            const=True, default=get_config(config, "interactive",
-                                            True, 'getboolean'),
-            help=u"Set interactivity level to interactive. When set, "
-                 u"the eggmonkey will ask for confirmation in case "
-                 u"there are errors."
-         )
-    cmd.add_argument('-I', "--noninteractive", action='store_const',
-            const=True, default=get_config(config, "interactive",
-                                            False, 'getboolean'),
-            help=u"Set interactivity level to non-interactive. "
-         )
+    cmd.add_argument(
+        '-i', "--interactive", action='store_const',
+        const=True, default=get_config(config, "interactive",
+                                       True, 'getboolean'),
+        help=u"Set interactivity level to interactive. When set, "
+        u"the eggmonkey will ask for confirmation in case "
+        u"there are errors."
+    )
+    cmd.add_argument(
+        '-I', "--noninteractive", action='store_const',
+        const=True, default=get_config(config, "interactive",
+                                       False, 'getboolean'),
+        help=u"Set interactivity level to non-interactive. "
+    )
 
-    cmd.add_argument('-a', "--autocheckout", action='store_const', const=True,
-            default=False, help=u"Process all eggs in autocheckout")
+    cmd.add_argument(
+        '-a', "--autocheckout", action='store_const', const=True,
+        default=False, help=u"Process all eggs in autocheckout")
 
-    cmd.add_argument("packages", nargs="*", metavar="PACKAGE",
-                help=u"The packages to release. Can be any of: [ %s ]" %
-                     u" ".join(sorted(sources.keys())))
+    cmd.add_argument(
+        "packages", nargs="*", metavar="PACKAGE",
+        help=u"The packages to release. Can be any of: [ %s ]" %
+        u" ".join(sorted(sources.keys())))
 
-    cmd.add_argument('-m', "--mkrelease",
-                default=os.path.expanduser(get_config(config, "mkrelease",
-                                                              "mkrelease")),
-                help=u"Path to mkrelease script. Defaults to 'mkrelease'")
+    cmd.add_argument(
+        '-m', "--mkrelease",
+        default=os.path.expanduser(get_config(config, "mkrelease",
+                                              "mkrelease")),
+        help=u"Path to mkrelease script. Defaults to 'mkrelease'")
 
-    cmd.add_argument('-p', "--python",
-                     default=os.path.expanduser(get_config(config,
-                                                        "python", "python")),
-                     help=u"Path to Python binary which will be used "
-                          u"to generate and upload the egg. "
-                          u"Only used when doing --manual-upload")
+    cmd.add_argument(
+        '-p', "--python",
+        default=os.path.expanduser(get_config(config,
+                                              "python", "python")),
+        help=u"Path to Python binary which will be used "
+        u"to generate and upload the egg. "
+        u"Only used when doing --manual-upload")
 
-    cmd.add_argument('-d', "--domain", action="append",
-                    help=u"The repository aliases. Defaults to 'eea'. "
-                        u"Specify multiple times to upload egg "
-                        u"to multiple repositories.",
-                        default=[],
-                    )
+    cmd.add_argument(
+        '-d', "--domain", action="append",
+        help=u"The repository aliases. Defaults to 'eea'. "
+        u"Specify multiple times to upload egg "
+        u"to multiple repositories.",
+        default=[],
+    )
 
     args = cmd.parse_args()
 
@@ -539,7 +568,7 @@ def main(*a, **kw):
                             "not a path")
             if package not in sources:
                 raise Error("ERROR: Package %s can't be found. Quiting."
-                                 % package)
+                            % package)
 
             print_msg("Releasing package: ", package)
             monkey = Monkey(package, sources, args, config)
@@ -569,7 +598,7 @@ def devify(*a, **kw):
             u"Devivy: make a package to be -dev version\n")
 
     cmd.add_argument("packages", nargs="*", metavar="PACKAGE",
-                help=u"The packages to devify. Can be any of: [ %s ]" %
+                     help=u"The packages to devify. Can be any of: [ %s ]" %
                      u" ".join(sorted(sources.keys())))
 
     args = cmd.parse_args()
@@ -592,4 +621,3 @@ def devify(*a, **kw):
             print "Changed version to -dev for package", package
         else:
             print "Package", package, " already at -dev"
-
