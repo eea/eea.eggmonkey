@@ -42,7 +42,7 @@ class SubversionSCM(GenericSCM):
 
     def is_dirty(self):
         ret = subprocess.Popen(['svn', 'status', '.'],
-                                stdout=subprocess.PIPE, cwd=self.path)
+                               stdout=subprocess.PIPE, cwd=self.path)
         out, err = ret.communicate()
 
         if ret.returncode == 0:
@@ -63,7 +63,7 @@ class SubversionSCM(GenericSCM):
         """
         """
         ret = subprocess.Popen(['svn', 'info'],
-                                stdout=subprocess.PIPE, cwd=self.path)
+                               stdout=subprocess.PIPE, cwd=self.path)
         out, err = ret.communicate()
 
         if ret.returncode == 0:
@@ -82,7 +82,7 @@ class GitSCM(GenericSCM):
 
     def _get_modified(self):
         ret = subprocess.Popen(['git', 'status', '.'],
-                                stdout=subprocess.PIPE, cwd=self.path)
+                               stdout=subprocess.PIPE, cwd=self.path)
         out, err = ret.communicate()
         if ret.returncode == 0:
             lines = out.splitlines()
@@ -93,11 +93,10 @@ class GitSCM(GenericSCM):
         modified = []
         for l in lines:
             if l.startswith("#") and l[1:].strip().startswith("modified:"):
-                #should use find() to find first space char
+                # should use find() to find first space char
                 modified.append(l[1:].strip().split()[1])
 
         return modified
-
 
     def add_and_commit(self, paths, message=None):
         self.add(paths)
@@ -120,8 +119,9 @@ class GitSCM(GenericSCM):
 
     def is_dirty(self):
         ret = subprocess.Popen(['git', 'status', '--porcelain',
-                '--untracked-files=no', '.'], stdout=subprocess.PIPE,
-                cwd=self.path)
+                                '--untracked-files=no', '.'],
+                               stdout=subprocess.PIPE,
+                               cwd=self.path)
         out, err = ret.communicate()
 
         if ret.returncode == 0:
@@ -133,7 +133,7 @@ class GitSCM(GenericSCM):
         """
         """
         ret = subprocess.Popen(['git', 'config', '--get', 'remote.origin.url'],
-                                stdout=subprocess.PIPE, cwd=self.path)
+                               stdout=subprocess.PIPE, cwd=self.path)
         out, err = ret.communicate()
 
         if ret.returncode == 0:
@@ -163,7 +163,7 @@ class MercurialSCM(GenericSCM):
 
     def is_dirty(self):
         ret = subprocess.Popen(['hg', 'status', '-mar', '.'],
-                                stdout=subprocess.PIPE, cwd=self.path)
+                               stdout=subprocess.PIPE, cwd=self.path)
         out, err = ret.communicate()
 
         if ret.returncode == 0:
@@ -175,7 +175,7 @@ class MercurialSCM(GenericSCM):
         """
         """
         ret = subprocess.Popen(['hg', 'paths', 'default'],
-                                stdout=subprocess.PIPE, cwd=self.path)
+                               stdout=subprocess.PIPE, cwd=self.path)
         out, err = ret.communicate()
 
         if ret.returncode == 0:
@@ -187,9 +187,9 @@ class MercurialSCM(GenericSCM):
 def get_scm(path, no_net):
     files = os.listdir(path)
     scms = {
-            'svn':('.svn', SubversionSCM),
-            'git':('.git', GitSCM),
-            'hg':('.hg', MercurialSCM)
+            'svn': ('.svn', SubversionSCM),
+            'git': ('.git', GitSCM),
+            'hg': ('.hg', MercurialSCM)
             }
 
     _scm = None
@@ -199,8 +199,7 @@ def get_scm(path, no_net):
             _scm = factory(path, no_net)
             break
 
-    if _scm == None:
-        raise ValueError ("Could not determine scm type", path)
+    if _scm is None:
+        raise ValueError("Could not determine scm type", path)
 
     return _scm
-
