@@ -115,7 +115,7 @@ class GitSCM(GenericSCM):
         self.execute(['git', 'push'])
 
     def update(self, paths):
-        self.execute(["git", "pull", "-u"])
+        self.execute(["git", "pull"])       # , "-u"
 
     def is_dirty(self):
         ret = subprocess.Popen(['git', 'status', '--porcelain',

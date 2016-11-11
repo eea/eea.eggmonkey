@@ -74,14 +74,12 @@ class Monkey():
     #1. Bump version.txt to correct version; from .dev0 to final. Update history file with release date; Record final release date
     #2. Prepare the package for release
     #3. Run "mkrelease -qp -d eea" in package dir; (Optional) Run "python setup.py sdist upload -r eea"
-    #4. Update versions.cfg file in buildout: svn up eea-buildout/versions.cfg
+    #4. Update versions.cfg file in buildout: <scm> up eea-buildout/versions.cfg
     #5. Change version for package in eea-buildout/versions.cfg
     #6. Commit versions.cfg file: svn commit versions.cfg
     #7. Bump package version file; From final to +1-dev. Update history file. Add Unreleased section
-    #8. SVN commit the dev version of the package.
-    """ # this needs to be updated everytime steps are modified
-    _dummy = """
-    """
+    #8. <SCM> commit the dev version of the package.
+    """ # NOTE: IMPORTANT!: this needs to be updated everytime steps are modified
 
     def __init__(self, package, sources, args, config):
         self.package = package
@@ -115,6 +113,8 @@ class Monkey():
         self.instructions = filter(None, map(lambda s: s.strip(),
                                              self._instructions.splitlines()))
 
+        self.resume_from = args.resume
+
     def check_package_sanity(self):
         # if self.pkg_scm.is_dirty():
             # raise Error("Package is dirty. Quiting")
@@ -136,6 +136,9 @@ class Monkey():
 
         vv = get_version(self.package_path)
         vh = FileHistoryParser(self.package_path).get_current_version()
+
+        if self.resume_from > 1:
+            return  # Bypass sanity checks when resuming
 
         vv_version = Version(vv)
         if not vv_version.is_prerelease:
@@ -222,6 +225,9 @@ class Monkey():
 
         for (n, description) in \
                 map(lambda x: (x[0]+1, x[1]), enumerate(self.instructions)):
+            if not (n >= self.resume_from):
+                print_msg("Skipping step", n, ": ", description)
+                continue
             step = getattr(self, 'step_%s' % n)
             step(n, description)
             if self.debug:
@@ -492,6 +498,9 @@ def main(*a, **kw):
     cmd.add_argument('-D', "--debug",
                      action='store_const', const=True, default=False,
                      help=u"Debug with an interactive prompt")
+
+    cmd.add_argument('-R', "--resume", type=int, default=-1,
+                     help=u"Resume operation from a given step")
 
     cmd.add_argument(
         '-i', "--interactive", action='store_const',

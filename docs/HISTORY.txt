@@ -3,6 +3,15 @@ Changelog
 
 4.0.dev0 - (unreleased)
 -----------------------
+* Change: pep8 fixes in monkey.py and scm.py
+  [tiberich]
+* BugFix: "git pull" no longer takes "-u" flag
+  [tiberich #73195]
+* Feature: allow resuming broken release processes.
+  Use -R<step number>, for example bin/monkey -R4 eea.something
+  to resume the release process after the process was broken
+  and aborted in step 4
+  [tiberich #73195]
 
 3.9 - (2016-08-03)
 ------------------
@@ -11,7 +20,7 @@ Changelog
 
 3.8 - (2015-12-07)
 ------------------
-* Change: Added system depenedencies within setup.py
+* Change: Added system dependencies within setup.py
   [voineali refs #27406]
 
 3.7 - (2015-11-23)
