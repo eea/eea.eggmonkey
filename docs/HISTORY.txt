@@ -1,8 +1,8 @@
 Changelog
 =========
 
-4.0.dev0 - (unreleased)
------------------------
+4.0 - (2016-11-14)
+------------------
 * Change: pep8 fixes in monkey.py and scm.py
   [tiberich]
 * BugFix: "git pull" no longer takes "-u" flag
