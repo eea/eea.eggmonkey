@@ -2,9 +2,9 @@
 EEA Egg Monkey
 ==============
 
-This tools should be used together with zc.buildout, mr.developer and
+This is an internal EEA tool to be used together with zc.buildout, mr.developer and
 jarn.mkrelease. Its purpose is to automate a series of 10 steps that are
-required in order to produce and upload an egg on the eggrepo.
+required in order to produce and upload an egg to an eggrepo.
 
 The ten steps are:
 
@@ -18,6 +18,9 @@ The ten steps are:
 8. Bump package version file; From final to +1-dev
 9. Update history file. Add Unreleased section
 10. SVN commit the dev version of the package.
+
+Note: the eggmonkey is scm aware, so it will switch to using svn, git or hg
+wherever appropriate, but only git and svn are the better tested scm options.
 
 Requirements
 ============
