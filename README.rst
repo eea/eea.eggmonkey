@@ -28,30 +28,34 @@ Instalation
 To use it, you need to add eea.eggmonkey as an extension to zc.buildout, for
 example:
 
-[buildout]
+.. code-block:: ini
 
-extensions =
-    mr.developer
-    eea.eggmonkey
-
-parts =
-    monkey
-    ...
+    [buildout]
+    
+    extensions =
+        mr.developer
+        eea.eggmonkey
+    
+    parts =
+        monkey
+        ...
 
 Also, you need to add a new part (+ the python26 part, if you don't already
 have it):
 
-[monkey]
-recipe = zc.recipe.egg
-eggs = eea.eggmonkey
-python = python26
+.. code-block:: ini
 
-[python26]
-executable = /usr/bin/python2.6
+    [monkey]
+    recipe = zc.recipe.egg
+    eggs = eea.eggmonkey
+    python = python26
+
+    [python26]
+    executable = /usr/bin/python2.6
 
 Usage
 -----
-Before you use it, you need to run bin/buildout (or bin/develop) at least once.
+Before you use it, you need to run ``bin/buildout`` (or ``bin/develop``) at least once.
 This allows eggmonkey to learn about the sources and the packages in
 auto-checkout.
 
