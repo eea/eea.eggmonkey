@@ -21,7 +21,7 @@ The ten steps are:
 
 Requirements
 ============
-eea.eggmonkey requires python2.6
+eea.eggmonkey requires python2.6+
 
 Instalation
 ===========
@@ -104,10 +104,14 @@ during testing), you can run
 
 * ``bin/monkey -n eea.indicators``
 
-
 If you want to skip versions.cfg update (for example running in a buildout without versions.cfg), you can run
 
 * ``bin/monkey -B eea.indicators``
+
+If you encounter an error in normal operation, you can resume the release process (after manually fixing the problem) with the -R flag
+
+* ``bin/monkey -R 4 eea.indicators``
+
 
 Providing defaults with a configuration file
 ============================================
