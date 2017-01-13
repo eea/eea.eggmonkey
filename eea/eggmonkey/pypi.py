@@ -80,10 +80,12 @@ def print_pypi_plone_unreleased_eggs(pypi=True, plone=False):
             _pypi = check_package_on_server(package, PYPI_PACKAGE)
             if _pypi:
                 serverVersion = _pypi.get('info', {}).get('version', 'None')
-                if not serverVersion == version:
-                    errors = True
-                    print "%30s:  %10s  not on pypi.python.org  %10s" % (
-                        package, version, serverVersion)
+                if serverVersion != version:
+                    releases = _pypi.get('releases', {})
+                    if version not in releases:
+                        errors = True
+                        print "%30s:  %10s  not on pypi.python.org  %10s" % (
+                            package, version, serverVersion)
 
     if errors:
         sys.exit(1)

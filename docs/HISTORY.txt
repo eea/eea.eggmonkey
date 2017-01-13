@@ -3,6 +3,8 @@ Changelog
 
 4.1.dev0 - (unreleased)
 -----------------------
+* Bug fix: Fix print_pypi_plone_unreleased_eggs 
+  [avoinea]
 
 4.0 - (2016-11-14)
 ------------------
