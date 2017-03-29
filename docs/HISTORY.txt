@@ -3,10 +3,15 @@ Changelog
 
 4.2.dev0 - (unreleased)
 -----------------------
+* Change: print the step number before executing it, to facilitate
+  resuming
+  [tiberich]
+* Change: pep8 fixes in buildout.py
+  [tiberich]
 
 4.1 - (2017-01-17)
 ------------------
-* Bug fix: Fix print_pypi_plone_unreleased_eggs 
+* Bug fix: Fix print_pypi_plone_unreleased_eggs
   [avoinea]
 
 4.0 - (2016-11-14)
@@ -43,7 +48,7 @@ Changelog
 
 3.5 - (2015-10-05)
 ------------------
-* Bug fix: use evnetlet to prevent hanging out connection
+* Bug fix: use eventlet to prevent hanging out connection
   [lucas refs #29063]
 
 3.4 - (2015-06-03)

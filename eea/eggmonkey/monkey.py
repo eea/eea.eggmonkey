@@ -191,6 +191,8 @@ class Monkey():
 
         while a == 'r':
 
+            print_msg('Step: %s' % step)
+
             try:
                 func()
                 break
