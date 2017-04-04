@@ -1,8 +1,8 @@
 Changelog
 =========
 
-4.2.dev0 - (unreleased)
------------------------
+4.2 - (2017-04-04)
+------------------
 * Change: print the step number before executing it, to facilitate
   resuming
   [tiberich]
