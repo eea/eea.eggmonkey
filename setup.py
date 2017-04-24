@@ -30,7 +30,7 @@ setup(name=name,
             "Programming Language :: Python :: 2.7",
             "Topic :: Software Development :: Libraries :: Python Modules",
             "License :: OSI Approved :: GNU General Public License (GPL)",
-      ],
+        ],
 
         keywords='EEA Add-ons Plone Zope buildout',
         author='European Environment Agency: IDM2 A-Team',
