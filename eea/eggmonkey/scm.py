@@ -21,6 +21,13 @@ class GenericSCM(object):
         if not self.no_net:
             subprocess.check_call(*args, cwd=self.path, **kwds)
 
+    def update(self, paths):
+        print "GenericSCM: Skipping update %{paths}s".format(paths=paths)
+
+    def commit(self, paths, message):
+        print "GenericSCM: Skipping commit '%{paths}s' w/ message '%{message}s'".format(
+            paths=paths, message=message)
+
 
 class SubversionSCM(GenericSCM):
     """Implementation of subversion scm
@@ -200,6 +207,7 @@ def get_scm(path, no_net):
             break
 
     if _scm is None:
-        raise ValueError("Could not determine scm type", path)
+        print "Could not determine scm type. You'll have to manually commit buildout versions.cfg later."
+        _scm = GenericSCM(path, no_net)
 
     return _scm

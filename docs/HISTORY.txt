@@ -3,6 +3,8 @@ Changelog
 
 4.4.dev0 - (unreleased)
 -----------------------
+* Change: Fallback on GenericSCM on unknown buildout SCM
+  [avoinea refs #87600]
 
 4.3 - (2017-04-24)
 ------------------
