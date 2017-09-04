@@ -160,12 +160,12 @@ def print_unreleased_packages():
 
     if not unreleased:
         print "No unreleased packages have been found"
+        sys.exit(0)
     else:
         print "\n\n\n"
         print changes
         print "\n\n"
         print "The following packages have unreleased modifications:",
         print ", ".join(unreleased)
-
-    sys.exit(0)
+        sys.exit(1)
 

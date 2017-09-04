@@ -5,6 +5,8 @@ Changelog
 -----------------------
 * Change: Fallback on GenericSCM on unknown buildout SCM
   [avoinea refs #87600]
+* Bug fix: Fixed exit code print_unreleased_packages
+  [avoinea refs #87909]
 
 4.3 - (2017-04-24)
 ------------------
