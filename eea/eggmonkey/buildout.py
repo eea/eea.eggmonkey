@@ -43,6 +43,9 @@ def cleanup_src(buildout):
     for pkg, info in sources.items():
         path = info['path']
         url = info['url']
+        kind = info['kind']
+        if kind == 'fs':
+            continue
         if not os.path.exists(path):
             continue
         scm = get_scm(path, False)
