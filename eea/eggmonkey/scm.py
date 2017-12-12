@@ -28,6 +28,15 @@ class GenericSCM(object):
         print "GenericSCM: Skipping commit '%{paths}s' w/ message '%{message}s'".format(
             paths=paths, message=message)
 
+    def checkout(self, branch):
+        print "GenericSCM: Skipping checkout '{branch}'".format(branch=branch)
+
+    def reset(self):
+        print "GenericSCM: Skipping reset"
+
+    def push(self, paths):
+        print "GenericSCM: Skipping push '{paths}'".format(paths=paths)
+
 
 class SubversionSCM(GenericSCM):
     """Implementation of subversion scm
@@ -46,6 +55,15 @@ class SubversionSCM(GenericSCM):
 
     def commit(self, paths, message):
         self.execute(['svn', 'commit'] + paths + ['-m', message])
+
+    def checkout(self, branch):
+        print "SubversionSCM: Skipping checkout '{branch}'".format(branch=branch)
+
+    def reset(self):
+        print "SubversionSCM: Skipping reset"
+
+    def push(self, paths):
+        print "SubversionSCM: Skipping push '{paths}'".format(paths=paths)
 
     def is_dirty(self):
         ret = subprocess.Popen(['svn', 'status', '.'],
@@ -119,10 +137,18 @@ class GitSCM(GenericSCM):
 
         self.execute(['git', 'add'] + paths)
         self.execute(['git', 'commit', '-am', message])
-        self.execute(['git', 'push'])
+
+    def push(self, paths):
+        self.execute(['git', 'push'] + paths)
+
+    def reset(self, paths):
+        self.execute(["git", "reset"] + paths)
+
+    def checkout(self, paths):
+        self.execute(["git", "checkout"] + paths)
 
     def update(self, paths):
-        self.execute(["git", "pull"])       # , "-u"
+        self.execute(["git", "pull"] + paths)       # , "-u"
 
     def is_dirty(self):
         ret = subprocess.Popen(['git', 'status', '--porcelain',
@@ -164,6 +190,15 @@ class MercurialSCM(GenericSCM):
     def commit(self, paths, message):
         self.execute(['hg', 'commit'] + paths + ['-m', message])
         self.execute(['hg', 'push'])
+
+    def push(self, paths):
+        self.execute(['hg', 'push'] + paths)
+
+    def reset(self, paths):
+        self.execute(["hg", "reset"] + paths)
+
+    def checkout(self, paths):
+        self.execute(["hg", "checkout"] + paths)
 
     def update(self, paths):
         self.execute(["hg", "pull", "-u"])
