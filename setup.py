@@ -16,7 +16,7 @@ setup(name=name,
             read('README.rst',),
             read('docs', 'HISTORY.txt'),
             ]),
-        # http://pypi.python.org/pypi?%3Aaction=list_classifiers      
+        # https://pypi.python.org/pypi?%3Aaction=list_classifiers      
         classifiers=[
             "Framework :: Buildout",
             "Framework :: Zope2",
