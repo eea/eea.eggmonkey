@@ -1,8 +1,12 @@
 Changelog
 =========
 
-4.6.dev0 - (unreleased)
+5.0.dev0 - (unreleased)
 -----------------------
+* Change: Add support for GitFlow
+  [avoinea refs #89563]
+* Change: updated URLs pointing to eea.europa.eu with https://
+  [alecghica refs #95849]
 
 4.5 - (2017-11-15)
 ------------------

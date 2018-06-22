@@ -9,8 +9,8 @@ from eea.eggmonkey.history import HistoryParser
 from eea.eggmonkey.utils import find_file
 
 
-PYPI_PACKAGE = 'http://pypi.python.org/pypi/%s/json'
-PYPI_RELEASE = 'http://pypi.python.org/pypi/%s/%s'
+PYPI_PACKAGE = 'https://pypi.python.org/pypi/%s/json'
+PYPI_RELEASE = 'https://pypi.python.org/pypi/%s/%s'
 PLONE_PACKAGE = 'http://plone.org/products/%s'
 PLONE_RELEASE = 'http://plone.org/products/%s/releases/%s'
 

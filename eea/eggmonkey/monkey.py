@@ -73,12 +73,12 @@ class Monkey():
     _instructions = """
     #1. Bump version.txt to correct version; from .dev0 to final. Update history file with release date; Record final release date
     #2. Prepare the package for release
-    #3. Run "mkrelease -qp -d eea" in package dir; (Optional) Run "python setup.py sdist upload -r eea"
+    #3. Run "mkrelease -d eea" in package dir; (Optional) Run "python setup.py sdist upload -r eea"
     #4. Update versions.cfg file in buildout: <scm> up eea-buildout/versions.cfg
     #5. Change version for package in eea-buildout/versions.cfg
     #6. Commit versions.cfg file: svn commit versions.cfg
     #7. Bump package version file; From final to +1-dev. Update history file. Add Unreleased section
-    #8. <SCM> commit the dev version of the package.
+    #8. <SCM> commit the dev version of the package within develop branch
     """ # NOTE: IMPORTANT!: this needs to be updated everytime steps are modified
 
     def __init__(self, package, sources, args, config):
@@ -299,7 +299,7 @@ class Monkey():
             # TODO: commit here
 
     def step_3(self, step, description):
-        cmd = list(chain(*([(self.mkrelease, "-qp")] +
+        cmd = list(chain(*([(self.mkrelease, "")] +
                            [('-d', d) for d in self.domain])))
 
         status = None
@@ -384,12 +384,17 @@ class Monkey():
             print_msg("Bumped version to ", vv)
 
     def step_8(self, step, description):
+        self.pkg_scm.reset(['HEAD^1'])
+        self.pkg_scm.checkout(["develop"])
+        self.pkg_scm.update([])
         version = get_version(self.package_path)
         self.do_step(
             lambda: self.pkg_scm.commit([],
                                         message='Updated version for %s to %s'
                                         % (self.package, version)),
             step, description)
+        self.pkg_scm.push(["--tags"])
+        self.pkg_scm.push(["--all"])
 
 
 def check_global_sanity(args, config):
